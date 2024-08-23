@@ -1,0 +1,20 @@
+{
+  "name": "network-traffic-analysis-tool",
+  "version": "1.0.0",
+  "description": "Frontend for Network Traffic Analysis and Visualization Tool",
+  "main": "index.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "d3": "^7.0.0"
+  },
+  "devDependencies": {},
+  "author": "Your Name",
+  "license": "MIT"
+}
