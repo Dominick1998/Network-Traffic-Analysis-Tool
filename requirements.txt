@@ -1,0 +1,4 @@
+Flask==2.0.1
+Scapy==2.4.5
+Wireshark==3.6.1
+SQLAlchemy==1.4.22
