@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import TrafficTable from './components/TrafficTable';
 
 function App() {
   const [trafficData, setTrafficData] = useState([]);
@@ -18,26 +19,7 @@ function App() {
       </header>
       <main>
         <h2>Captured Network Traffic</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Source</th>
-              <th>Destination</th>
-              <th>Protocol</th>
-              <th>Length</th>
-            </tr>
-          </thead>
-          <tbody>
-            {trafficData.map((packet, index) => (
-              <tr key={index}>
-                <td>{packet.source}</td>
-                <td>{packet.destination}</td>
-                <td>{packet.protocol}</td>
-                <td>{packet.length}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <TrafficTable trafficData={trafficData} />
       </main>
     </div>
   );
