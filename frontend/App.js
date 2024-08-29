@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import TrafficTable from './components/TrafficTable';
 import TrafficChart from './components/TrafficChart';
+import './styles.css';
 
 function App() {
   const [trafficData, setTrafficData] = useState([]);
