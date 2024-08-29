@@ -1,5 +1,6 @@
 from scapy.all import sniff, IP, TCP, UDP
 import logging
+from backend.traffic_processor import save_packet_to_db
 
 # Configure logging to write captured packets to a file
 logging.basicConfig(filename='network_traffic.log', level=logging.INFO,
@@ -7,7 +8,7 @@ logging.basicConfig(filename='network_traffic.log', level=logging.INFO,
 
 def process_packet(packet):
     """
-    Process a captured network packet and log its details.
+    Process a captured network packet, log its details, and save it to the database.
 
     Args:
         packet: A network packet captured by Scapy.
@@ -15,25 +16,30 @@ def process_packet(packet):
     Returns:
         None
     """
-    # Check if the packet has an IP layer
     if IP in packet:
         ip_layer = packet[IP]
         protocol = None
 
-        # Determine the protocol and extract relevant details
         if TCP in packet:
             protocol = 'TCP'
-            transport_layer = packet[TCP]
         elif UDP in packet:
             protocol = 'UDP'
-            transport_layer = packet[UDP]
         else:
             protocol = 'Other'
-            transport_layer = None
+
+        # Prepare packet data
+        packet_data = {
+            'source': ip_layer.src,
+            'destination': ip_layer.dst,
+            'protocol': protocol,
+            'length': len(packet)
+        }
 
         # Log the packet details
-        logging.info(f'Source: {ip_layer.src} | Destination: {ip_layer.dst} | '
-                     f'Protocol: {protocol} | Length: {len(packet)}')
+        logging.info(f"Source: {packet_data['source']} | Destination: {packet_data['destination']} | Protocol: {packet_data['protocol']} | Length: {packet_data['length']}")
+
+        # Save the packet to the database
+        save_packet_to_db(packet_data)
 
 def start_sniffing(interface=None, packet_count=0):
     """
@@ -50,5 +56,4 @@ def start_sniffing(interface=None, packet_count=0):
     sniff(iface=interface, prn=process_packet, count=packet_count)
 
 if __name__ == '__main__':
-    # Example: Capture 10 packets on the default interface
     start_sniffing(packet_count=10)
