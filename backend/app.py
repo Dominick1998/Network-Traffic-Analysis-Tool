@@ -1,7 +1,14 @@
-from flask import Flask, jsonify, request
+from flask import Flask
+from backend.routes import api_bp
 
 # Initialize the Flask application
 app = Flask(__name__)
+
+# Register the Blueprint for API routes
+app.register_blueprint(api_bp)
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 # A simple route to check if the server is running
 @app.route('/api/health', methods=['GET'])
