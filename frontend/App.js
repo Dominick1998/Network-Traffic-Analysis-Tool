@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TrafficTable from './components/TrafficTable';
+import TrafficChart from './components/TrafficChart';
 
 function App() {
   const [trafficData, setTrafficData] = useState([]);
@@ -20,6 +21,8 @@ function App() {
       <main>
         <h2>Captured Network Traffic</h2>
         <TrafficTable trafficData={trafficData} />
+        <h2>Network Traffic Visualization</h2>
+        <TrafficChart trafficData={trafficData} />
       </main>
     </div>
   );
