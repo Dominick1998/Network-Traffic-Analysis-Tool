@@ -1,20 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import TrafficTable from './components/TrafficTable';
 import TrafficChart from './components/TrafficChart';
+import LoadingSpinner from './components/LoadingSpinner';
 import { fetchTrafficData } from './utils/api';
 import './styles.css';
 
 function App() {
   const [trafficData, setTrafficData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadTrafficData = async () => {
       const data = await fetchTrafficData();
       setTrafficData(data);
+      setLoading(false);
     };
 
     loadTrafficData();
   }, []);
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="App">
