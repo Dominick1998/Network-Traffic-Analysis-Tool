@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import TrafficTable from './components/TrafficTable';
 import TrafficChart from './components/TrafficChart';
+import { fetchTrafficData } from './utils/api';
 import './styles.css';
 
 function App() {
   const [trafficData, setTrafficData] = useState([]);
 
   useEffect(() => {
-    // Fetch traffic data from the backend API
-    fetch('/api/traffic')
-      .then(response => response.json())
-      .then(data => setTrafficData(data))
-      .catch(error => console.error('Error fetching traffic data:', error));
+    const loadTrafficData = async () => {
+      const data = await fetchTrafficData();
+      setTrafficData(data);
+    };
+
+    loadTrafficData();
   }, []);
 
   return (
