@@ -3,30 +3,64 @@ import TrafficTable from './components/TrafficTable';
 import TrafficChart from './components/TrafficChart';
 import LoadingSpinner from './components/LoadingSpinner';
 import { fetchTrafficData } from './utils/api';
+import { login, isLoggedIn, logout } from './utils/auth';
 import './styles.css';
 
 function App() {
   const [trafficData, setTrafficData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(isLoggedIn());
 
   useEffect(() => {
-    const loadTrafficData = async () => {
-      const data = await fetchTrafficData();
-      setTrafficData(data);
-      setLoading(false);
-    };
+    if (authenticated) {
+      const loadTrafficData = async () => {
+        const data = await fetchTrafficData();
+        setTrafficData(data);
+        setLoading(false);
+      };
 
-    loadTrafficData();
-  }, []);
+      loadTrafficData();
+    } else {
+      setLoading(false);
+    }
+  }, [authenticated]);
+
+  const handleLogin = async (username, password) => {
+    const success = await login(username, password);
+    if (success) {
+      setAuthenticated(true);
+    } else {
+      alert('Invalid credentials');
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setAuthenticated(false);
+  };
 
   if (loading) {
     return <LoadingSpinner />;
+  }
+
+  if (!authenticated) {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <h1>Please Log In</h1>
+        </header>
+        <main>
+          <LoginForm onLogin={handleLogin} />
+        </main>
+      </div>
+    );
   }
 
   return (
     <div className="App">
       <header className="App-header">
         <h1>Network Traffic Analysis and Visualization Tool</h1>
+        <button onClick={handleLogout}>Logout</button>
       </header>
       <main>
         <h2>Captured Network Traffic</h2>
@@ -37,5 +71,29 @@ function App() {
     </div>
   );
 }
+
+const LoginForm = ({ onLogin }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onLogin(username, password);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div>
+        <label>Username:</label>
+        <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+      </div>
+      <div>
+        <label>Password:</label>
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+      </div>
+      <button type="submit">Login</button>
+    </form>
+  );
+};
 
 export default App;
