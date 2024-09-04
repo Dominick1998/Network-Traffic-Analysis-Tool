@@ -1,43 +1,70 @@
-from flask import Flask
-from backend.routes import api_bp
+from flask import Blueprint, jsonify, request
+from backend.database import get_db_session
+from backend.models import NetworkTraffic
+from backend.security import validate_ip_address, sanitize_input
+from backend.auth import generate_token, token_required
 
-# Initialize the Flask application
-app = Flask(__name__)
+# Create a Blueprint for API routes
+api_bp = Blueprint('api', __name__)
 
-# Register the Blueprint for API routes
-app.register_blueprint(api_bp)
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
-# A simple route to check if the server is running
-@app.route('/api/health', methods=['GET'])
+@api_bp.route('/api/health', methods=['GET'])
 def health_check():
     """
     Health check endpoint to verify the server is running.
-    
+
     Returns:
         JSON response with a message indicating server status.
     """
     return jsonify({'status': 'Server is running'}), 200
 
-# A route to simulate capturing network traffic (stub)
-@app.route('/api/traffic', methods=['GET'])
+@api_bp.route('/api/login', methods=['POST'])
+def login():
+    """
+    Login endpoint to authenticate the user and return a JWT token.
+
+    Returns:
+        JSON response with a JWT token or an error message.
+    """
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    # Simple authentication logic (replace with database lookup)
+    if username == "admin" and password == "password":
+        token = generate_token(username)
+        return jsonify({'token': token}), 200
+    else:
+        return jsonify({'error': 'Invalid credentials'}), 403
+
+@api_bp.route('/api/traffic', methods=['GET'])
+@token_required
 def get_traffic_data():
     """
-    Simulates the capture and return of network traffic data.
-    
-    Returns:
-        JSON response with dummy network traffic data.
-    """
-    # This is a placeholder for the actual traffic data
-    dummy_data = [
-        {'source': '192.168.1.1', 'destination': '192.168.1.2', 'protocol': 'TCP', 'length': 60},
-        {'source': '192.168.1.2', 'destination': '192.168.1.3', 'protocol': 'UDP', 'length': 120},
-        {'source': '192.168.1.1', 'destination': '192.168.1.4', 'protocol': 'ICMP', 'length': 30},
-    ]
-    return jsonify(dummy_data), 200
+    Retrieve the network traffic data from the database.
 
-# Run the Flask application
-if __name__ == '__main__':
-    app.run(debug=True)
+    Returns:
+        JSON response with network traffic data.
+    """
+    session = get_db_session()
+    try:
+        # Query all network traffic data
+        traffic_data = session.query(NetworkTraffic).all()
+
+        # Convert query results to a list of dictionaries
+        traffic_list = [
+            {
+                'source': sanitize_input(traffic.source),
+                'destination': sanitize_input(traffic.destination),
+                'protocol': sanitize_input(traffic.protocol),
+                'length': traffic.length,
+                'timestamp': traffic.timestamp.isoformat()
+            }
+            for traffic in traffic_data
+        ]
+
+        return jsonify(traffic_list), 200
+    except Exception as e:
+        print(f"Error fetching traffic data: {e}")
+        return jsonify({'error': 'Unable to fetch traffic data'}), 500
+    finally:
+        session.close()
