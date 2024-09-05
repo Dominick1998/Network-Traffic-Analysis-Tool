@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import TrafficTable from './components/TrafficTable';
 import TrafficChart from './components/TrafficChart';
 import LoadingSpinner from './components/LoadingSpinner';
+import ErrorMessage from './components/ErrorMessage';
 import { fetchTrafficData } from './utils/api';
 import { login, isLoggedIn, logout } from './utils/auth';
 import './styles.css';
@@ -10,13 +11,19 @@ function App() {
   const [trafficData, setTrafficData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(isLoggedIn());
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (authenticated) {
       const loadTrafficData = async () => {
-        const data = await fetchTrafficData();
-        setTrafficData(data);
-        setLoading(false);
+        try {
+          const data = await fetchTrafficData();
+          setTrafficData(data);
+        } catch (e) {
+          setError('Failed to load traffic data. Please try again.');
+        } finally {
+          setLoading(false);
+        }
       };
 
       loadTrafficData();
@@ -30,7 +37,7 @@ function App() {
     if (success) {
       setAuthenticated(true);
     } else {
-      alert('Invalid credentials');
+      setError('Invalid credentials');
     }
   };
 
@@ -41,6 +48,19 @@ function App() {
 
   if (loading) {
     return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <h1>Network Traffic Analysis and Visualization Tool</h1>
+        </header>
+        <main>
+          <ErrorMessage message={error} />
+        </main>
+      </div>
+    );
   }
 
   if (!authenticated) {
