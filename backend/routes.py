@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify, request
 from backend.database import get_db_session
 from backend.models import NetworkTraffic
 from backend.security import validate_ip_address, sanitize_input
+from backend.auth import generate_token, token_required
+from backend.rate_limiter import rate_limit
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -16,7 +18,28 @@ def health_check():
     """
     return jsonify({'status': 'Server is running'}), 200
 
+@api_bp.route('/api/login', methods=['POST'])
+def login():
+    """
+    Login endpoint to authenticate the user and return a JWT token.
+
+    Returns:
+        JSON response with a JWT token or an error message.
+    """
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    # Simple authentication logic (replace with database lookup)
+    if username == "admin" and password == "password":
+        token = generate_token(username)
+        return jsonify({'token': token}), 200
+    else:
+        return jsonify({'error': 'Invalid credentials'}), 403
+
 @api_bp.route('/api/traffic', methods=['GET'])
+@token_required
+@rate_limit(max_requests=5, window_seconds=60)
 def get_traffic_data():
     """
     Retrieve the network traffic data from the database.
@@ -45,45 +68,5 @@ def get_traffic_data():
     except Exception as e:
         print(f"Error fetching traffic data: {e}")
         return jsonify({'error': 'Unable to fetch traffic data'}), 500
-    finally:
-        session.close()
-
-@api_bp.route('/api/traffic', methods=['POST'])
-def add_traffic_data():
-    """
-    Add network traffic data to the database.
-
-    Returns:
-        JSON response with a message indicating success or failure.
-    """
-    session = get_db_session()
-    try:
-        data = request.json
-        source = data.get('source')
-        destination = data.get('destination')
-        protocol = data.get('protocol')
-        length = data.get('length')
-
-        # Validate inputs
-        if not validate_ip_address(source) or not validate_ip_address(destination):
-            return jsonify({'error': 'Invalid IP address format'}), 400
-
-        # Sanitize inputs
-        protocol = sanitize_input(protocol)
-
-        # Create a new NetworkTraffic record
-        traffic_record = NetworkTraffic(
-            source=source,
-            destination=destination,
-            protocol=protocol,
-            length=length
-        )
-        session.add(traffic_record)
-        session.commit()
-        return jsonify({'message': 'Traffic data added successfully'}), 201
-    except Exception as e:
-        session.rollback()
-        print(f"Error adding traffic data: {e}")
-        return jsonify({'error': 'Unable to add traffic data'}), 500
     finally:
         session.close()
