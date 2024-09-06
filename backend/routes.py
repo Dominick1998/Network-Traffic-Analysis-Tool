@@ -4,6 +4,7 @@ from backend.models import NetworkTraffic
 from backend.security import validate_ip_address, sanitize_input
 from backend.auth import generate_token, token_required
 from backend.rate_limiter import rate_limit
+from backend.email_notifications import send_email_notification
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -63,6 +64,15 @@ def get_traffic_data():
             }
             for traffic in traffic_data
         ]
+
+        # Check if any traffic exceeds a threshold (e.g., packet length > 1000)
+        for traffic in traffic_data:
+            if traffic.length > 1000:
+                send_email_notification(
+                    to_email='admin@example.com',
+                    subject='Traffic Alert: Large Packet Detected',
+                    message=f"Large packet detected from {traffic.source} to {traffic.destination} with length {traffic.length}."
+                )
 
         return jsonify(traffic_list), 200
     except Exception as e:
