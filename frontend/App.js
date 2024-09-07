@@ -3,6 +3,7 @@ import TrafficTable from './components/TrafficTable';
 import TrafficChart from './components/TrafficChart';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
+import NotificationBanner from './components/NotificationBanner';
 import { fetchTrafficData } from './utils/api';
 import { login, isLoggedIn, logout } from './utils/auth';
 import './styles.css';
@@ -12,6 +13,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(isLoggedIn());
   const [error, setError] = useState(null);
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     if (authenticated) {
@@ -36,14 +38,17 @@ function App() {
     const success = await login(username, password);
     if (success) {
       setAuthenticated(true);
+      setNotification({ message: 'Login successful!', type: 'success' });
     } else {
       setError('Invalid credentials');
+      setNotification({ message: 'Login failed. Please try again.', type: 'error' });
     }
   };
 
   const handleLogout = () => {
     logout();
     setAuthenticated(false);
+    setNotification({ message: 'You have logged out.', type: 'success' });
   };
 
   if (loading) {
@@ -63,30 +68,24 @@ function App() {
     );
   }
 
-  if (!authenticated) {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <h1>Please Log In</h1>
-        </header>
-        <main>
-          <LoginForm onLogin={handleLogin} />
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="App">
       <header className="App-header">
         <h1>Network Traffic Analysis and Visualization Tool</h1>
-        <button onClick={handleLogout}>Logout</button>
+        {notification && <NotificationBanner message={notification.message} type={notification.type} />}
+        {authenticated && <button onClick={handleLogout}>Logout</button>}
       </header>
       <main>
-        <h2>Captured Network Traffic</h2>
-        <TrafficTable trafficData={trafficData} />
-        <h2>Network Traffic Visualization</h2>
-        <TrafficChart trafficData={trafficData} />
+        {authenticated ? (
+          <>
+            <h2>Captured Network Traffic</h2>
+            <TrafficTable trafficData={trafficData} />
+            <h2>Network Traffic Visualization</h2>
+            <TrafficChart trafficData={trafficData} />
+          </>
+        ) : (
+          <LoginForm onLogin={handleLogin} />
+        )}
       </main>
     </div>
   );
