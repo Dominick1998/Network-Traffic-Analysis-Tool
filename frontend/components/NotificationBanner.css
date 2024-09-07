@@ -1,0 +1,19 @@
+.notification-banner {
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 4px;
+  color: #fff;
+  text-align: center;
+}
+
+.notification-banner.success {
+  background-color: #4caf50;
+}
+
+.notification-banner.warning {
+  background-color: #ff9800;
+}
+
+.notification-banner.error {
+  background-color: #f44336;
+}
