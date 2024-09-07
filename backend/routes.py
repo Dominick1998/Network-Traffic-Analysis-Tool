@@ -4,6 +4,7 @@ from backend.models import NetworkTraffic
 from backend.security import validate_ip_address, sanitize_input
 from backend.auth import generate_token, token_required
 from backend.rate_limiter import rate_limit
+from backend.throttling import throttle
 from backend.email_notifications import send_email_notification
 
 # Create a Blueprint for API routes
@@ -41,6 +42,7 @@ def login():
 @api_bp.route('/api/traffic', methods=['GET'])
 @token_required
 @rate_limit(max_requests=5, window_seconds=60)
+@throttle(max_requests=10, slowdown_seconds=5)
 def get_traffic_data():
     """
     Retrieve the network traffic data from the database.
