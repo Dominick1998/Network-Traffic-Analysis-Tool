@@ -3,6 +3,25 @@ from backend.database import get_db_session
 from backend.models import NetworkTraffic
 from backend.security import validate_ip_address, sanitize_input
 from backend.auth import generate_token, token_required
+from flask import Flask
+from backend.routes import api_bp
+from backend.logging_config import setup_logging
+from backend.logging_middleware import log_request_and_response
+
+# Set up logging
+setup_logging()
+
+# Initialize the Flask application
+app = Flask(__name__)
+
+# Apply logging middleware to log requests and responses
+app = log_request_and_response(app)
+
+# Register the Blueprint for API routes
+app.register_blueprint(api_bp)
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
