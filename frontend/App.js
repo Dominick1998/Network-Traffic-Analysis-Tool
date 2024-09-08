@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import TrafficTable from './components/TrafficTable';
 import TrafficChart from './components/TrafficChart';
+import AnomalyTable from './components/AnomalyTable';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
 import NotificationBanner from './components/NotificationBanner';
-import { fetchTrafficData } from './utils/api';
+import { fetchTrafficData, fetchAnomalousTraffic } from './utils/api';
 import { login, isLoggedIn, logout } from './utils/auth';
 import './styles.css';
 
 function App() {
   const [trafficData, setTrafficData] = useState([]);
+  const [anomalyData, setAnomalyData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(isLoggedIn());
   const [error, setError] = useState(null);
@@ -20,7 +22,9 @@ function App() {
       const loadTrafficData = async () => {
         try {
           const data = await fetchTrafficData();
+          const anomalies = await fetchAnomalousTraffic();
           setTrafficData(data);
+          setAnomalyData(anomalies);
         } catch (e) {
           setError('Failed to load traffic data. Please try again.');
         } finally {
@@ -82,6 +86,8 @@ function App() {
             <TrafficTable trafficData={trafficData} />
             <h2>Network Traffic Visualization</h2>
             <TrafficChart trafficData={trafficData} />
+            <h2>Anomalous Network Traffic</h2>
+            <AnomalyTable anomalyData={anomalyData} />
           </>
         ) : (
           <LoginForm onLogin={handleLogin} />
