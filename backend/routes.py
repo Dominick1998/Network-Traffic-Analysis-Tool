@@ -6,6 +6,7 @@ from backend.auth import generate_token, token_required
 from backend.rate_limiter import rate_limit
 from backend.throttling import throttle
 from backend.email_notifications import send_email_notification
+from backend.anomaly_detection import detect_anomalies
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -80,5 +81,41 @@ def get_traffic_data():
     except Exception as e:
         print(f"Error fetching traffic data: {e}")
         return jsonify({'error': 'Unable to fetch traffic data'}), 500
+    finally:
+        session.close()
+
+@api_bp.route('/api/anomalies', methods=['GET'])
+@token_required
+def get_anomalous_traffic():
+    """
+    Retrieve anomalous network traffic based on anomaly detection.
+
+    Returns:
+        JSON response with anomalous network traffic.
+    """
+    session = get_db_session()
+    try:
+        # Query all network traffic data
+        traffic_data = session.query(NetworkTraffic).all()
+
+        # Convert query results to a list of dictionaries
+        traffic_list = [
+            {
+                'source': sanitize_input(traffic.source),
+                'destination': sanitize_input(traffic.destination),
+                'protocol': sanitize_input(traffic.protocol),
+                'length': traffic.length,
+                'timestamp': traffic.timestamp.isoformat()
+            }
+            for traffic in traffic_data
+        ]
+
+        # Detect anomalies
+        anomalies = detect_anomalies(traffic_list)
+
+        return jsonify(anomalies), 200
+    except Exception as e:
+        print(f"Error fetching anomalous traffic: {e}")
+        return jsonify({'error': 'Unable to fetch anomalous traffic'}), 500
     finally:
         session.close()
