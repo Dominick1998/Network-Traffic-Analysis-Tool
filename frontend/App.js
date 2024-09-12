@@ -12,6 +12,7 @@ import './styles.css';
 function App() {
   const [trafficData, setTrafficData] = useState([]);
   const [anomalyData, setAnomalyData] = useState([]);
+  const [networkSummary, setNetworkSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(isLoggedIn());
   const [error, setError] = useState(null);
@@ -19,12 +20,14 @@ function App() {
 
   useEffect(() => {
     if (authenticated) {
-      const loadTrafficData = async () => {
+      const loadData = async () => {
         try {
           const data = await fetchTrafficData();
           const anomalies = await fetchAnomalousTraffic();
+          const summary = await fetchNetworkSummary();
           setTrafficData(data);
           setAnomalyData(anomalies);
+          setNetworkSummary(summary);
         } catch (e) {
           setError('Failed to load traffic data. Please try again.');
         } finally {
@@ -32,7 +35,7 @@ function App() {
         }
       };
 
-      loadTrafficData();
+      loadData();
     } else {
       setLoading(false);
     }
@@ -88,6 +91,8 @@ function App() {
             <TrafficChart trafficData={trafficData} />
             <h2>Anomalous Network Traffic</h2>
             <AnomalyTable anomalyData={anomalyData} />
+            <h2>Network Summary</h2>
+            {networkSummary && <NetworkSummary summary={networkSummary} />}
           </>
         ) : (
           <LoginForm onLogin={handleLogin} />
