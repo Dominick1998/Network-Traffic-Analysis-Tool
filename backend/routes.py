@@ -7,6 +7,7 @@ from backend.rate_limiter import rate_limit
 from backend.throttling import throttle
 from backend.email_notifications import send_email_notification
 from backend.anomaly_detection import detect_anomalies
+from backend.network_summary import generate_network_summary
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -117,5 +118,41 @@ def get_anomalous_traffic():
     except Exception as e:
         print(f"Error fetching anomalous traffic: {e}")
         return jsonify({'error': 'Unable to fetch anomalous traffic'}), 500
+    finally:
+        session.close()
+
+@api_bp.route('/api/summary', methods=['GET'])
+@token_required
+def get_network_summary():
+    """
+    Retrieve a summary of the network traffic data.
+
+    Returns:
+        JSON response with the network traffic summary.
+    """
+    session = get_db_session()
+    try:
+        # Query all network traffic data
+        traffic_data = session.query(NetworkTraffic).all()
+
+        # Convert query results to a list of dictionaries
+        traffic_list = [
+            {
+                'source': sanitize_input(traffic.source),
+                'destination': sanitize_input(traffic.destination),
+                'protocol': sanitize_input(traffic.protocol),
+                'length': traffic.length,
+                'timestamp': traffic.timestamp.isoformat()
+            }
+            for traffic in traffic_data
+        ]
+
+        # Generate the network summary
+        summary = generate_network_summary(traffic_list)
+
+        return jsonify(summary), 200
+    except Exception as e:
+        print(f"Error fetching network summary: {e}")
+        return jsonify({'error': 'Unable to fetch network summary'}), 500
     finally:
         session.close()
