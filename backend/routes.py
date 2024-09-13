@@ -8,6 +8,43 @@ from backend.throttling import throttle
 from backend.email_notifications import send_email_notification
 from backend.anomaly_detection import detect_anomalies
 from backend.network_summary import generate_network_summary
+from backend.alerts import check_alert_conditions
+
+@api_bp.route('/api/alerts', methods=['GET'])
+@token_required
+def get_alerts():
+    """
+    Retrieve alerts based on network traffic data conditions.
+
+    Returns:
+        JSON response with a list of alerts.
+    """
+    session = get_db_session()
+    try:
+        # Query all network traffic data
+        traffic_data = session.query(NetworkTraffic).all()
+
+        # Convert query results to a list of dictionaries
+        traffic_list = [
+            {
+                'source': sanitize_input(traffic.source),
+                'destination': sanitize_input(traffic.destination),
+                'protocol': sanitize_input(traffic.protocol),
+                'length': traffic.length,
+                'timestamp': traffic.timestamp.isoformat()
+            }
+            for traffic in traffic_data
+        ]
+
+        # Check for alert conditions
+        alerts = check_alert_conditions(traffic_list)
+
+        return jsonify(alerts), 200
+    except Exception as e:
+        print(f"Error fetching alerts: {e}")
+        return jsonify({'error': 'Unable to fetch alerts'}), 500
+    finally:
+        session.close()
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
