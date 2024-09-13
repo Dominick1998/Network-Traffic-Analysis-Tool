@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import TrafficTable from './components/TrafficTable';
 import TrafficChart from './components/TrafficChart';
 import AnomalyTable from './components/AnomalyTable';
+import NetworkSummary from './components/NetworkSummary';
+import AlertsList from './components/AlertsList';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
 import NotificationBanner from './components/NotificationBanner';
-import { fetchTrafficData, fetchAnomalousTraffic } from './utils/api';
+import { fetchTrafficData, fetchAnomalousTraffic, fetchNetworkSummary, fetchAlerts } from './utils/api';
 import { login, isLoggedIn, logout } from './utils/auth';
 import './styles.css';
 
@@ -13,6 +15,7 @@ function App() {
   const [trafficData, setTrafficData] = useState([]);
   const [anomalyData, setAnomalyData] = useState([]);
   const [networkSummary, setNetworkSummary] = useState(null);
+  const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(isLoggedIn());
   const [error, setError] = useState(null);
@@ -25,9 +28,11 @@ function App() {
           const data = await fetchTrafficData();
           const anomalies = await fetchAnomalousTraffic();
           const summary = await fetchNetworkSummary();
+          const alertsData = await fetchAlerts();
           setTrafficData(data);
           setAnomalyData(anomalies);
           setNetworkSummary(summary);
+          setAlerts(alertsData);
         } catch (e) {
           setError('Failed to load traffic data. Please try again.');
         } finally {
@@ -93,6 +98,8 @@ function App() {
             <AnomalyTable anomalyData={anomalyData} />
             <h2>Network Summary</h2>
             {networkSummary && <NetworkSummary summary={networkSummary} />}
+            <h2>Network Alerts</h2>
+            <AlertsList alerts={alerts} />
           </>
         ) : (
           <LoginForm onLogin={handleLogin} />
