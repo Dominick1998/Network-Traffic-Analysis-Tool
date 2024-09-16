@@ -9,6 +9,23 @@ from backend.email_notifications import send_email_notification
 from backend.anomaly_detection import detect_anomalies
 from backend.network_summary import generate_network_summary
 from backend.alerts import check_alert_conditions
+import os
+from flask import send_file
+
+@api_bp.route('/api/logs', methods=['GET'])
+@token_required
+def get_logs():
+    """
+    Serve the request logs for viewing.
+    
+    Returns:
+        The log file contents.
+    """
+    log_file = 'request_logs.log'
+    if os.path.exists(log_file):
+        return send_file(log_file)
+    else:
+        return jsonify({'error': 'Log file not found'}), 404
 
 @api_bp.route('/api/alerts', methods=['GET'])
 @token_required
