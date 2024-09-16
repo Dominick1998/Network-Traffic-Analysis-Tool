@@ -1,0 +1,21 @@
+.logs-container {
+  padding: 20px;
+  background-color: #f4f4f4;
+  border-radius: 5px;
+}
+
+.logs-container h2 {
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+.logs-container pre {
+  background-color: #333;
+  color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  overflow-x: auto;
+  max-height: 300px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
