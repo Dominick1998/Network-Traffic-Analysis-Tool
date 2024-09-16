@@ -7,9 +7,13 @@ from flask import Flask
 from backend.routes import api_bp
 from backend.logging_config import setup_logging
 from backend.logging_middleware import log_request_and_response
+from flask import Flask
+from backend.routes import api_bp
+from backend.logging_middleware import log_request_and_response
+from backend.log_rotation import setup_log_rotation
 
-# Set up logging
-setup_logging()
+# Set up log rotation
+setup_log_rotation()
 
 # Initialize the Flask application
 app = Flask(__name__)
