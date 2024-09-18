@@ -2,18 +2,16 @@ import time
 from threading import Thread
 from backend.log_rotation import setup_log_rotation
 from backend.email_notifications import send_email_notification
+from backend.routes import scheduler_pause_event
 
 def scheduled_task(interval, task_function):
     """
-    Run a given task at a fixed interval in a separate thread.
-
-    Args:
-        interval (int): Time interval in seconds between task executions.
-        task_function (function): The task to run periodically.
+    Run a given task at a fixed interval in a separate thread, with pause/resume support.
     """
     def run_task():
         while True:
-            task_function()
+            if not scheduler_pause_event.is_set():
+                task_function()
             time.sleep(interval)
 
     task_thread = Thread(target=run_task)
