@@ -11,6 +11,29 @@ from backend.network_summary import generate_network_summary
 from backend.alerts import check_alert_conditions
 import os
 from flask import send_file
+from flask import jsonify
+from threading import Event
+
+# Global event to control scheduler pause/resume
+scheduler_pause_event = Event()
+
+@api_bp.route('/api/scheduler/pause', methods=['POST'])
+@token_required
+def pause_scheduler():
+    """
+    Pause the scheduler tasks.
+    """
+    scheduler_pause_event.set()
+    return jsonify({'message': 'Scheduler paused'}), 200
+
+@api_bp.route('/api/scheduler/resume', methods=['POST'])
+@token_required
+def resume_scheduler():
+    """
+    Resume the scheduler tasks.
+    """
+    scheduler_pause_event.clear()
+    return jsonify({'message': 'Scheduler resumed'}), 200
 
 @api_bp.route('/api/logs', methods=['GET'])
 @token_required
