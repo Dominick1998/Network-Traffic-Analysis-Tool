@@ -10,10 +10,14 @@ from backend.logging_middleware import log_request_and_response
 from flask import Flask
 from backend.routes import api_bp
 from backend.logging_middleware import log_request_and_response
+from backend.scheduler import start_scheduler
 from backend.log_rotation import setup_log_rotation
 
 # Set up log rotation
 setup_log_rotation()
+
+# Start the scheduler for periodic tasks
+start_scheduler()
 
 # Initialize the Flask application
 app = Flask(__name__)
