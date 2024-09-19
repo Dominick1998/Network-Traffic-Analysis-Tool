@@ -4,6 +4,7 @@ import TrafficChart from './components/TrafficChart';
 import AnomalyTable from './components/AnomalyTable';
 import NetworkSummary from './components/NetworkSummary';
 import AlertsList from './components/AlertsList';
+import SchedulerControl from './components/SchedulerControl';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
 import NotificationBanner from './components/NotificationBanner';
@@ -100,6 +101,7 @@ function App() {
             {networkSummary && <NetworkSummary summary={networkSummary} />}
             <h2>Network Alerts</h2>
             <AlertsList alerts={alerts} />
+            <SchedulerControl />
           </>
         ) : (
           <LoginForm onLogin={handleLogin} />
@@ -108,29 +110,5 @@ function App() {
     </div>
   );
 }
-
-const LoginForm = ({ onLogin }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onLogin(username, password);
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label>Username:</label>
-        <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-      </div>
-      <div>
-        <label>Password:</label>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      </div>
-      <button type="submit">Login</button>
-    </form>
-  );
-};
 
 export default App;
