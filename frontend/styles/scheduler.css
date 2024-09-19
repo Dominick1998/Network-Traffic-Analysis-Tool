@@ -1,0 +1,24 @@
+.scheduler-control {
+  padding: 20px;
+  background-color: #f4f4f4;
+  border-radius: 5px;
+  margin-top: 20px;
+}
+
+.scheduler-control h2 {
+  font-size: 20px;
+}
+
+.scheduler-control button {
+  margin-right: 10px;
+  padding: 10px 15px;
+  border-radius: 4px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+.scheduler-control button[disabled] {
+  background-color: #cccccc;
+}
