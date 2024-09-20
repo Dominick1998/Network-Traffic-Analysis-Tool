@@ -35,6 +35,27 @@ def resume_scheduler():
     scheduler_pause_event.clear()
     return jsonify({'message': 'Scheduler resumed'}), 200
 
+@api_bp.route('/api/settings/retention', methods=['POST'])
+@token_required
+def update_retention_policy():
+    """
+    Update the data retention policy for traffic data.
+
+    Returns:
+        JSON response with a message indicating the result of the update.
+    """
+    data = request.json
+    days = data.get('days', 30)
+
+    if days < 1:
+        return jsonify({'error': 'Invalid retention period'}), 400
+
+    # In a real implementation, this value would be stored in a settings table or configuration file
+    print(f"Updating data retention policy to {days} days.")
+
+    # Placeholder for updating the policy
+    return jsonify({'message': f'Data retention policy updated to {days} days'}), 200
+
 @api_bp.route('/api/logs', methods=['GET'])
 @token_required
 def get_logs():
