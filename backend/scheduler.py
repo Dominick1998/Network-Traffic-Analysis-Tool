@@ -3,6 +3,16 @@ from threading import Thread
 from backend.log_rotation import setup_log_rotation
 from backend.email_notifications import send_email_notification
 from backend.routes import scheduler_pause_event
+from backend.cleanup import delete_old_traffic_data
+
+def start_scheduler():
+    """
+    Start the scheduler and set up periodic tasks.
+    """
+    # Set up periodic tasks (e.g., send daily summary every 24 hours, rotate logs every hour, cleanup every 7 days)
+    scheduled_task(86400, send_daily_summary)  # Daily summary task
+    scheduled_task(3600, rotate_logs_task)     # Log rotation task
+    scheduled_task(604800, lambda: delete_old_traffic_data(30))  # Cleanup task, runs every 7 days
 
 def scheduled_task(interval, task_function):
     """
