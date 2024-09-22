@@ -4,6 +4,7 @@ from backend.log_rotation import setup_log_rotation
 from backend.email_notifications import send_email_notification
 from backend.routes import scheduler_pause_event
 from backend.cleanup import delete_old_traffic_data
+from backend.notifications import send_admin_notification
 
 def start_scheduler():
     """
@@ -32,19 +33,49 @@ def send_daily_summary():
     """
     Task that sends a daily summary email to administrators.
     """
-    # Here you could query your database and summarize traffic
-    send_email_notification(
-        to_email='admin@example.com',
-        subject='Daily Traffic Summary',
-        message='Here is your daily network traffic summary...'
-    )
+    try:
+        send_admin_notification(
+            subject="Daily Traffic Summary",
+            message="Here is your daily network traffic summary..."
+        )
+    except Exception as e:
+        send_admin_notification(
+            subject="Error in Daily Summary Task",
+            message=f"An error occurred while sending the daily summary: {e}"
+        )
 
 def rotate_logs_task():
     """
-    Task to rotate logs periodically.
+    Task to rotate logs periodically, with notification on completion.
     """
-    setup_log_rotation()
+    try:
+        setup_log_rotation()
+        send_admin_notification(
+            subject="Log Rotation Complete",
+            message="Log rotation was completed successfully."
+        )
+    except Exception as e:
+        send_admin_notification(
+            subject="Error in Log Rotation Task",
+            message=f"An error occurred during log rotation: {e}"
+        )
 
+def cleanup_task():
+    """
+    Task to clean up old traffic data and notify admin on completion.
+    """
+    try:
+        delete_old_traffic_data(30)
+        send_admin_notification(
+            subject="Traffic Data Cleanup Complete",
+            message="Old traffic data older than 30 days was deleted successfully."
+        )
+    except Exception as e:
+        send_admin_notification(
+            subject="Error in Traffic Data Cleanup Task",
+            message=f"An error occurred while cleaning up old traffic data: {e}"
+        )
+        
 def start_scheduler():
     """
     Start the scheduler and set up periodic tasks.
