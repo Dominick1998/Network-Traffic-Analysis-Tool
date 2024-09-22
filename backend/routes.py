@@ -17,6 +17,25 @@ from threading import Event
 # Global event to control scheduler pause/resume
 scheduler_pause_event = Event()
 
+notifications_log = []
+
+def log_notification(message):
+    """
+    Log a notification message in memory for later retrieval.
+    """
+    notifications_log.append({'message': message})
+
+@api_bp.route('/api/notifications', methods=['GET'])
+@token_required
+def get_notifications():
+    """
+    Retrieve a list of notifications for the admin.
+
+    Returns:
+        JSON response with a list of notifications.
+    """
+    return jsonify(notifications_log), 200
+
 @api_bp.route('/api/scheduler/pause', methods=['POST'])
 @token_required
 def pause_scheduler():
