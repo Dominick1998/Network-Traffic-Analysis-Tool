@@ -4,7 +4,7 @@ import TrafficChart from './components/TrafficChart';
 import AnomalyTable from './components/AnomalyTable';
 import NetworkSummary from './components/NetworkSummary';
 import AlertsList from './components/AlertsList';
-import SchedulerControl from './components/SchedulerControl';
+import ExportData from './components/ExportData';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
 import NotificationBanner from './components/NotificationBanner';
@@ -101,7 +101,7 @@ function App() {
             {networkSummary && <NetworkSummary summary={networkSummary} />}
             <h2>Network Alerts</h2>
             <AlertsList alerts={alerts} />
-            <SchedulerControl />
+            <ExportData />
           </>
         ) : (
           <LoginForm onLogin={handleLogin} />
