@@ -9,10 +9,33 @@ from backend.email_notifications import send_email_notification
 from backend.anomaly_detection import detect_anomalies
 from backend.network_summary import generate_network_summary
 from backend.alerts import check_alert_conditions
-import os
+from backend.export import export_to_csv, export_to_json
 from flask import send_file
 from flask import jsonify
 from threading import Event
+import os
+
+@api_bp.route('/api/export/csv', methods=['GET'])
+@token_required
+def get_csv_export():
+    """
+    Export network traffic data as CSV.
+
+    Returns:
+        Response with CSV data.
+    """
+    return export_to_csv()
+
+@api_bp.route('/api/export/json', methods=['GET'])
+@token_required
+def get_json_export():
+    """
+    Export network traffic data as JSON.
+
+    Returns:
+        Response with JSON data.
+    """
+    return export_to_json()
 
 # Global event to control scheduler pause/resume
 scheduler_pause_event = Event()
