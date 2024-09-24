@@ -1,4 +1,21 @@
-Flask==2.0.1
+Flask==2.0.3
 Scapy==2.4.5
 Wireshark==3.6.1
-SQLAlchemy==1.4.22
+SQLAlchemy==1.4.27
+Flask-SQLAlchemy==2.5.1
+psycopg2-binary==2.9.1
+D3.js==7.0.1  # For frontend visualizations
+requests==2.26.0
+pandas==1.3.4  # For potential data handling and analysis
+numpy==1.21.4  # For statistical computations (anomalies)
+flask-cors==3.0.10  # To handle CORS in Flask
+pytest==6.2.5  # For backend testing
+pytest-flask==1.2.0
+gunicorn==20.1.0  # For deploying the Flask app
+flask-jwt-extended==4.3.1  # For authentication
+email-validator==1.1.3  # For email validation
+unittest2==1.1.0  # Unit testing
+Flask-RESTful==0.3.9  # For creating RESTful APIs
+pydantic==1.8.2  # For data validation in APIs
+matplotlib==3.4.3  # For generating charts and visualizations
+pylint==2.10.2  # For linting and enforcing code standards
