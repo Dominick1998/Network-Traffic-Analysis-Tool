@@ -10,10 +10,35 @@ from backend.anomaly_detection import detect_anomalies
 from backend.network_summary import generate_network_summary
 from backend.alerts import check_alert_conditions
 from backend.export import export_to_csv, export_to_json
+from backend.import import import_from_csv
 from flask import send_file
 from flask import jsonify
 from threading import Event
 import os
+
+from backend.import import import_from_csv
+
+@api_bp.route('/api/import/csv', methods=['POST'])
+@token_required
+def upload_csv():
+    """
+    Upload and import network traffic data from a CSV file.
+
+    Returns:
+        JSON response indicating success or failure.
+    """
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    if file and file.filename.endswith('.csv'):
+        result = import_from_csv(file)
+        return jsonify(result), 200 if 'message' in result else 500
+    else:
+        return jsonify({'error': 'Invalid file format'}), 400
 
 @api_bp.route('/api/export/csv', methods=['GET'])
 @token_required
