@@ -5,6 +5,7 @@ import AnomalyTable from './components/AnomalyTable';
 import NetworkSummary from './components/NetworkSummary';
 import AlertsList from './components/AlertsList';
 import ExportData from './components/ExportData';
+import ImportData from './components/ImportData';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
 import NotificationBanner from './components/NotificationBanner';
@@ -102,6 +103,7 @@ function App() {
             <h2>Network Alerts</h2>
             <AlertsList alerts={alerts} />
             <ExportData />
+            <ImportData />
           </>
         ) : (
           <LoginForm onLogin={handleLogin} />
