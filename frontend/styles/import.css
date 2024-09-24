@@ -1,0 +1,27 @@
+.import-data {
+  padding: 20px;
+  background-color: #f4f4f4;
+  border-radius: 5px;
+  margin-top: 20px;
+}
+
+.import-data h2 {
+  font-size: 18px;
+}
+
+.import-data input {
+  margin-right: 10px;
+}
+
+.import-data button {
+  padding: 10px 15px;
+  border-radius: 4px;
+  border: none;
+  background-color: #28a745;
+  color: white;
+  cursor: pointer;
+}
+
+.import-data button:hover {
+  background-color: #218838;
+}
