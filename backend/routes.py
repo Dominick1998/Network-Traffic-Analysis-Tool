@@ -11,12 +11,33 @@ from backend.network_summary import generate_network_summary
 from backend.alerts import check_alert_conditions
 from backend.export import export_to_csv, export_to_json
 from backend.import import import_from_csv
+from backend.logs import get_logs, download_logs
 from flask import send_file
 from flask import jsonify
 from threading import Event
 import os
 
-from backend.import import import_from_csv
+@api_bp.route('/api/logs', methods=['GET'])
+@token_required
+def view_logs():
+    """
+    View the server logs.
+
+    Returns:
+        JSON response containing the log file contents.
+    """
+    return get_logs()
+
+@api_bp.route('/api/logs/download', methods=['GET'])
+@token_required
+def download_server_logs():
+    """
+    Download the server logs.
+
+    Returns:
+        Response that triggers the download of the log file.
+    """
+    return download_logs()
 
 @api_bp.route('/api/import/csv', methods=['POST'])
 @token_required
