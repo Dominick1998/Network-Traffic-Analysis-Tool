@@ -6,6 +6,7 @@ import NetworkSummary from './components/NetworkSummary';
 import AlertsList from './components/AlertsList';
 import ExportData from './components/ExportData';
 import ImportData from './components/ImportData';
+import LogsViewer from './components/LogsViewer';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
 import NotificationBanner from './components/NotificationBanner';
@@ -104,6 +105,7 @@ function App() {
             <AlertsList alerts={alerts} />
             <ExportData />
             <ImportData />
+            <LogsViewer />
           </>
         ) : (
           <LoginForm onLogin={handleLogin} />
