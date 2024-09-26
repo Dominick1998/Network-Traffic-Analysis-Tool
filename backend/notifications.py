@@ -1,19 +1,32 @@
-from backend.email_notifications import send_email_notification
+import smtplib
+from email.mime.text import MIMEText
 
-def send_admin_notification(subject, message):
+def send_email_notification(to_email, subject, message):
     """
-    Send a notification to the admin via email.
+    Send an email notification.
 
     Args:
-        subject (str): The subject of the notification.
-        message (str): The message body of the notification.
+        to_email (str): Recipient email address.
+        subject (str): Subject of the email.
+        message (str): Body of the email.
     """
+    sender_email = "your-email@example.com"
+    smtp_server = "smtp.example.com"
+    smtp_port = 587
+    smtp_username = "your-username"
+    smtp_password = "your-password"
+
     try:
-        send_email_notification(
-            to_email='admin@example.com',
-            subject=subject,
-            message=message
-        )
-        print(f"Notification sent: {subject}")
+        msg = MIMEText(message)
+        msg["Subject"] = subject
+        msg["From"] = sender_email
+        msg["To"] = to_email
+
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_username, smtp_password)
+            server.sendmail(sender_email, to_email, msg.as_string())
+
+        print(f"Email sent to {to_email}")
     except Exception as e:
-        print(f"Error sending notification: {e}")
+        print(f"Failed to send email: {e}")
