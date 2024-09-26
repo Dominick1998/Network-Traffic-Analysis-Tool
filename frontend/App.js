@@ -7,9 +7,9 @@ import AlertsList from './components/AlertsList';
 import ExportData from './components/ExportData';
 import ImportData from './components/ImportData';
 import LogsViewer from './components/LogsViewer';
+import NotificationBanner from './components/NotificationBanner';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
-import NotificationBanner from './components/NotificationBanner';
 import { fetchTrafficData, fetchAnomalousTraffic, fetchNetworkSummary, fetchAlerts } from './utils/api';
 import { login, isLoggedIn, logout } from './utils/auth';
 import './styles.css';
@@ -19,10 +19,10 @@ function App() {
   const [anomalyData, setAnomalyData] = useState([]);
   const [networkSummary, setNetworkSummary] = useState(null);
   const [alerts, setAlerts] = useState([]);
+  const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(isLoggedIn());
   const [error, setError] = useState(null);
-  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     if (authenticated) {
@@ -36,6 +36,13 @@ function App() {
           setAnomalyData(anomalies);
           setNetworkSummary(summary);
           setAlerts(alertsData);
+
+          if (anomalies.length > 0) {
+            setNotification({
+              message: `Detected ${anomalies.length} network anomalies. Please investigate.`,
+              type: 'error',
+            });
+          }
         } catch (e) {
           setError('Failed to load traffic data. Please try again.');
         } finally {
