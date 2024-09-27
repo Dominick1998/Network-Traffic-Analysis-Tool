@@ -1,0 +1,29 @@
+.threat-list {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  margin-top: 20px;
+}
+
+.threat-list h2 {
+  font-size: 18px;
+}
+
+.threat-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.threat-list th, .threat-list td {
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+
+.threat-list th {
+  background-color: #007bff;
+  color: white;
+}
+
+.threat-list td {
+  text-align: center;
+}
