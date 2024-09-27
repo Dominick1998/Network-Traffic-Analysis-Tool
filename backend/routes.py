@@ -12,6 +12,7 @@ from backend.cleanup import delete_old_traffic_data
 from backend.export import export_to_csv, export_to_json
 from backend.import_data import import_from_csv
 from backend.logs import get_logs, download_logs
+from backend.threat_detection import detect_ddos
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -276,3 +277,38 @@ def update_retention_policy():
     print(f"Updating data retention policy to {days} days.")
 
     return jsonify({'message': f'Data retention policy updated to {days} days'}), 200
+
+@api_bp.route('/api/threats', methods=['GET'])
+@token_required
+def detect_threats():
+    """
+    Detect potential threats in the network traffic, such as DDoS attacks.
+
+    Returns:
+        JSON response with a list of detected threats.
+    """
+    session = get_db_session()
+    try:
+        traffic_data = session.query(NetworkTraffic).all()
+
+        # Convert query results to a list of dictionaries
+        traffic_list = [
+            {
+                'source': sanitize_input(traffic.source),
+                'destination': sanitize_input(traffic.destination),
+                'protocol': sanitize_input(traffic.protocol),
+                'length': traffic.length,
+                'timestamp': traffic.timestamp.isoformat()
+            }
+            for traffic in traffic_data
+        ]
+
+        # Detect DDoS attacks or other threats
+        threats = detect_ddos(traffic_list)
+
+        return jsonify(threats), 200
+    except Exception as e:
+        print(f"Error detecting threats: {e}")
+        return jsonify({'error': 'Unable to detect threats'}), 500
+    finally:
+        session.close()
