@@ -13,6 +13,7 @@ from backend.export import export_to_csv, export_to_json
 from backend.import_data import import_from_csv
 from backend.logs import get_logs, download_logs
 from backend.threat_detection import detect_ddos
+from backend.performance_monitoring import get_cpu_usage, get_memory_usage, track_response_time
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -312,3 +313,23 @@ def detect_threats():
         return jsonify({'error': 'Unable to detect threats'}), 500
     finally:
         session.close()
+
+@api_bp.route('/api/performance', methods=['GET'])
+@token_required
+def get_performance_metrics():
+    """
+    Retrieve the current system performance metrics, such as CPU and memory usage.
+
+    Returns:
+        JSON response with performance metrics.
+    """
+    try:
+        performance_data = {
+            'cpu_usage': get_cpu_usage(),
+            'memory_usage': get_memory_usage()
+        }
+
+        return jsonify(performance_data), 200
+    except Exception as e:
+        print(f"Error fetching performance metrics: {e}")
+        return jsonify({'error': 'Unable to fetch performance metrics'}), 500
