@@ -7,6 +7,7 @@ import AlertsList from './components/AlertsList';
 import ExportData from './components/ExportData';
 import ImportData from './components/ImportData';
 import LogsViewer from './components/LogsViewer';
+import ThreatList from './components/ThreatList';
 import NotificationBanner from './components/NotificationBanner';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
@@ -113,6 +114,7 @@ function App() {
             <ExportData />
             <ImportData />
             <LogsViewer />
+            <ThreatList />
           </>
         ) : (
           <LoginForm onLogin={handleLogin} />
