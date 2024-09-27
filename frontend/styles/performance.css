@@ -1,0 +1,19 @@
+.performance-monitor {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  margin-top: 20px;
+}
+
+.performance-monitor h2 {
+  font-size: 18px;
+}
+
+.performance-monitor ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.performance-monitor li {
+  margin: 5px 0;
+}
