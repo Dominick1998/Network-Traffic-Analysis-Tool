@@ -14,6 +14,7 @@ from backend.import_data import import_from_csv
 from backend.logs import get_logs, download_logs
 from backend.threat_detection import detect_ddos
 from backend.performance_monitoring import get_cpu_usage, get_memory_usage, track_response_time
+from backend.user_activity import log_user_activity, get_user_activity_logs
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -43,6 +44,8 @@ def login():
     # Simple authentication logic (replace with database lookup)
     if username == "admin" and password == "password":
         token = generate_token(username)
+        # Log the user activity for successful login
+        log_user_activity(user_id=1, activity="User logged in")
         return jsonify({'token': token}), 200
     else:
         return jsonify({'error': 'Invalid credentials'}), 403
@@ -203,6 +206,8 @@ def get_csv_export():
     Returns:
         Response with CSV data.
     """
+    # Log the user activity for CSV export
+    log_user_activity(user_id=1, activity="User exported traffic data as CSV")
     return export_to_csv()
 
 @api_bp.route('/api/export/json', methods=['GET'])
@@ -214,6 +219,8 @@ def get_json_export():
     Returns:
         Response with JSON data.
     """
+    # Log the user activity for JSON export
+    log_user_activity(user_id=1, activity="User exported traffic data as JSON")
     return export_to_json()
 
 @api_bp.route('/api/import/csv', methods=['POST'])
@@ -234,6 +241,8 @@ def upload_csv():
 
     if file and file.filename.endswith('.csv'):
         result = import_from_csv(file)
+        # Log the user activity for importing CSV data
+        log_user_activity(user_id=1, activity="User imported traffic data from CSV")
         return jsonify(result), 200 if 'message' in result else 500
     else:
         return jsonify({'error': 'Invalid file format'}), 400
@@ -258,6 +267,8 @@ def download_server_logs():
     Returns:
         Response that triggers the download of the log file.
     """
+    # Log the user activity for log download
+    log_user_activity(user_id=1, activity="User downloaded server logs")
     return download_logs()
 
 @api_bp.route('/api/settings/retention', methods=['POST'])
@@ -333,3 +344,19 @@ def get_performance_metrics():
     except Exception as e:
         print(f"Error fetching performance metrics: {e}")
         return jsonify({'error': 'Unable to fetch performance metrics'}), 500
+
+@api_bp.route('/api/user_activity', methods=['GET'])
+@token_required
+def get_activity_logs():
+    """
+    Retrieve all user activity logs.
+
+    Returns:
+        JSON response with a list of user activity logs.
+    """
+    try:
+        activity_logs = get_user_activity_logs()
+        return jsonify(activity_logs), 200
+    except Exception as e:
+        print(f"Error fetching user activity logs: {e}")
+        return jsonify({'error': 'Unable to fetch activity logs'}), 500
