@@ -1,0 +1,29 @@
+.activity-logs {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  margin-top: 20px;
+}
+
+.activity-logs h2 {
+  font-size: 18px;
+}
+
+.activity-logs table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.activity-logs th, .activity-logs td {
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+
+.activity-logs th {
+  background-color: #007bff;
+  color: white;
+}
+
+.activity-logs td {
+  text-align: center;
+}
