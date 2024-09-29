@@ -1,35 +1,27 @@
 from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-from datetime import datetime
-
-# Base class for our SQLAlchemy models
-Base = declarative_base()
+from backend.database import Base
 
 class NetworkTraffic(Base):
     """
-    Model representing a captured network traffic packet.
+    Model for storing network traffic data.
     """
     __tablename__ = 'network_traffic'
 
-    id = Column(Integer, primary_key=True)
-    source = Column(String, nullable=False)
-    destination = Column(String, nullable=False)
-    protocol = Column(String, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    source = Column(String(255), nullable=False)
+    destination = Column(String(255), nullable=False)
+    protocol = Column(String(50), nullable=False)
     length = Column(Integer, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, nullable=False)
 
-    def __repr__(self):
-        return f"<NetworkTraffic(id={self.id}, source={self.source}, destination={self.destination}, protocol={self.protocol}, length={self.length}, timestamp={self.timestamp})>"
 
-# Create the table schema
-def create_tables(engine):
+class UserActivity(Base):
     """
-    Create all tables in the database.
-
-    Args:
-        engine: The SQLAlchemy engine to connect to the database.
-    
-    Returns:
-        None
+    Model for logging user activities in the system.
     """
-    Base.metadata.create_all(engine)
+    __tablename__ = 'user_activity'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, nullable=False)
+    activity = Column(String(255), nullable=False)
+    timestamp = Column(DateTime, nullable=False)
