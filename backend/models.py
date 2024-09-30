@@ -14,7 +14,6 @@ class NetworkTraffic(Base):
     length = Column(Integer, nullable=False)
     timestamp = Column(DateTime, nullable=False)
 
-
 class UserActivity(Base):
     """
     Model for logging user activities in the system.
@@ -25,3 +24,15 @@ class UserActivity(Base):
     user_id = Column(Integer, nullable=False)
     activity = Column(String(255), nullable=False)
     timestamp = Column(DateTime, nullable=False)
+
+class Alert(Base):
+    """
+    Model for storing custom alert rules.
+    """
+    __tablename__ = 'alerts'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(255), nullable=False)
+    condition = Column(String(255), nullable=False)
+    action = Column(String(255), nullable=False)
+    created_at = Column(DateTime, nullable=False)
