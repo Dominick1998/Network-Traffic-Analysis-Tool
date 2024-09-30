@@ -84,7 +84,7 @@ The **Network Traffic Analysis and Visualization Tool** is a comprehensive platf
 - `/api/performance`: Get system performance metrics (CPU, memory).
 - `/api/user_activity`: Retrieve logs of user activities.
 
-### **Explanation:**
+## **Explanation:**
 - **Flask**: The core backend framework.
 - **SQLAlchemy and Flask-SQLAlchemy**: For database operations.
 - **psutil**: Used for system performance monitoring (CPU and memory usage).
