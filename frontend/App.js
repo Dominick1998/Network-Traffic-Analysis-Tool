@@ -10,6 +10,7 @@ import LogsViewer from './components/LogsViewer';
 import ThreatList from './components/ThreatList';
 import PerformanceMonitor from './components/PerformanceMonitor';
 import ActivityLogs from './components/ActivityLogs';
+import AlertManagement from './components/AlertManagement';
 import NotificationBanner from './components/NotificationBanner';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
@@ -119,6 +120,7 @@ function App() {
             <ThreatList />
             <PerformanceMonitor />
             <ActivityLogs />
+            <AlertManagement />
           </>
         ) : (
           <LoginForm onLogin={handleLogin} />
