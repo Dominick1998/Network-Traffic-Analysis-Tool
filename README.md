@@ -84,6 +84,14 @@ The **Network Traffic Analysis and Visualization Tool** is a comprehensive platf
 - `/api/performance`: Get system performance metrics (CPU, memory).
 - `/api/user_activity`: Retrieve logs of user activities.
 
+### **Explanation:**
+- **Flask**: The core backend framework.
+- **SQLAlchemy and Flask-SQLAlchemy**: For database operations.
+- **psutil**: Used for system performance monitoring (CPU and memory usage).
+- **Flask-JWT-Extended**: For user authentication and token management.
+- **pymongo** and **psycopg2-binary**: Database connectors for MongoDB and PostgreSQL, respectively (depending on the chosen database).
+- **D3.js, React, and Chart.js**: Frontend libraries for data visualization and UI management.
+
 ## Contributing
 
 1. Fork the repository.
@@ -96,10 +104,3 @@ The **Network Traffic Analysis and Visualization Tool** is a comprehensive platf
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-### **Explanation:**
-- **Flask**: The core backend framework.
-- **SQLAlchemy and Flask-SQLAlchemy**: For database operations.
-- **psutil**: Used for system performance monitoring (CPU and memory usage).
-- **Flask-JWT-Extended**: For user authentication and token management.
-- **pymongo** and **psycopg2-binary**: Database connectors for MongoDB and PostgreSQL, respectively (depending on the chosen database).
-- **D3.js, React, and Chart.js**: Frontend libraries for data visualization and UI management.
