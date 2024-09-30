@@ -15,6 +15,7 @@ from backend.logs import get_logs, download_logs
 from backend.threat_detection import detect_ddos
 from backend.performance_monitoring import get_cpu_usage, get_memory_usage, track_response_time
 from backend.user_activity import log_user_activity, get_user_activity_logs
+from backend.alerts import create_alert, get_alerts, delete_alert
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -360,3 +361,50 @@ def get_activity_logs():
     except Exception as e:
         print(f"Error fetching user activity logs: {e}")
         return jsonify({'error': 'Unable to fetch activity logs'}), 500
+
+@api_bp.route('/api/alerts', methods=['POST'])
+@token_required
+def create_alert_route():
+    """
+    Create a new alert rule.
+
+    Returns:
+        JSON response with success or failure message.
+    """
+    data = request.json
+    name = data.get('name')
+    condition = data.get('condition')
+    action = data.get('action')
+
+    if not name or not condition or not action:
+        return jsonify({'error': 'All fields are required'}), 400
+
+    result = create_alert(name=name, condition=condition, action=action)
+    return jsonify(result), 200 if 'message' in result else 500
+
+@api_bp.route('/api/alerts', methods=['GET'])
+@token_required
+def get_alerts_route():
+    """
+    Retrieve all alert rules.
+
+    Returns:
+        JSON response with a list of alert rules.
+    """
+    try:
+        alerts = get_alerts()
+        return jsonify(alerts), 200
+    except Exception as e:
+        return jsonify({'error': 'Unable to fetch alerts'}), 500
+
+@api_bp.route('/api/alerts/<int:alert_id>', methods=['DELETE'])
+@token_required
+def delete_alert_route(alert_id):
+    """
+    Delete an alert rule by its ID.
+
+    Returns:
+        JSON response with success or failure message.
+    """
+    result = delete_alert(alert_id=alert_id)
+    return jsonify(result), 200 if 'message' in result else 500
