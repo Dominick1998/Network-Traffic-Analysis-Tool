@@ -16,6 +16,7 @@ from backend.threat_detection import detect_ddos
 from backend.performance_monitoring import get_cpu_usage, get_memory_usage, track_response_time
 from backend.user_activity import log_user_activity, get_user_activity_logs
 from backend.alerts import create_alert, get_alerts, delete_alert
+from backend.anomaly_logging import log_anomaly, get_anomaly_logs
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -113,6 +114,16 @@ def get_anomalous_traffic():
         # Detect anomalies
         anomalies = detect_anomalies(traffic_list)
 
+        # Log anomalies if detected
+        for anomaly in anomalies:
+            log_anomaly(
+                source_ip=anomaly['source'],
+                destination_ip=anomaly['destination'],
+                protocol=anomaly['protocol'],
+                length=anomaly['length'],
+                anomaly_type="Anomalous Traffic"
+            )
+
         # Send email notification if anomalies are detected
         if anomalies:
             send_email_notification(
@@ -127,6 +138,22 @@ def get_anomalous_traffic():
         return jsonify({'error': 'Unable to fetch anomalous traffic'}), 500
     finally:
         session.close()
+
+@api_bp.route('/api/anomaly_logs', methods=['GET'])
+@token_required
+def get_anomaly_logs_route():
+    """
+    Retrieve all logged anomaly records.
+
+    Returns:
+        JSON response with a list of anomaly logs.
+    """
+    try:
+        logs = get_anomaly_logs()
+        return jsonify(logs), 200
+    except Exception as e:
+        print(f"Error fetching anomaly logs: {e}")
+        return jsonify({'error': 'Unable to fetch anomaly logs'}), 500
 
 @api_bp.route('/api/summary', methods=['GET'])
 @token_required
@@ -163,40 +190,52 @@ def get_network_summary():
     finally:
         session.close()
 
-@api_bp.route('/api/alerts', methods=['GET'])
+@api_bp.route('/api/alerts', methods=['POST'])
 @token_required
-def get_alerts():
+def create_alert_route():
     """
-    Retrieve alerts based on network traffic data conditions.
+    Create a new alert rule.
 
     Returns:
-        JSON response with a list of alerts.
+        JSON response with success or failure message.
     """
-    session = get_db_session()
+    data = request.json
+    name = data.get('name')
+    condition = data.get('condition')
+    action = data.get('action')
+
+    if not name or not condition or not action:
+        return jsonify({'error': 'All fields are required'}), 400
+
+    result = create_alert(name=name, condition=condition, action=action)
+    return jsonify(result), 200 if 'message' in result else 500
+
+@api_bp.route('/api/alerts', methods=['GET'])
+@token_required
+def get_alerts_route():
+    """
+    Retrieve all alert rules.
+
+    Returns:
+        JSON response with a list of alert rules.
+    """
     try:
-        traffic_data = session.query(NetworkTraffic).all()
-
-        # Convert query results to a list of dictionaries
-        traffic_list = [
-            {
-                'source': sanitize_input(traffic.source),
-                'destination': sanitize_input(traffic.destination),
-                'protocol': sanitize_input(traffic.protocol),
-                'length': traffic.length,
-                'timestamp': traffic.timestamp.isoformat()
-            }
-            for traffic in traffic_data
-        ]
-
-        # Check for alert conditions
-        alerts = check_alert_conditions(traffic_list)
-
+        alerts = get_alerts()
         return jsonify(alerts), 200
     except Exception as e:
-        print(f"Error fetching alerts: {e}")
         return jsonify({'error': 'Unable to fetch alerts'}), 500
-    finally:
-        session.close()
+
+@api_bp.route('/api/alerts/<int:alert_id>', methods=['DELETE'])
+@token_required
+def delete_alert_route(alert_id):
+    """
+    Delete an alert rule by its ID.
+
+    Returns:
+        JSON response with success or failure message.
+    """
+    result = delete_alert(alert_id=alert_id)
+    return jsonify(result), 200 if 'message' in result else 500
 
 @api_bp.route('/api/export/csv', methods=['GET'])
 @token_required
@@ -361,50 +400,3 @@ def get_activity_logs():
     except Exception as e:
         print(f"Error fetching user activity logs: {e}")
         return jsonify({'error': 'Unable to fetch activity logs'}), 500
-
-@api_bp.route('/api/alerts', methods=['POST'])
-@token_required
-def create_alert_route():
-    """
-    Create a new alert rule.
-
-    Returns:
-        JSON response with success or failure message.
-    """
-    data = request.json
-    name = data.get('name')
-    condition = data.get('condition')
-    action = data.get('action')
-
-    if not name or not condition or not action:
-        return jsonify({'error': 'All fields are required'}), 400
-
-    result = create_alert(name=name, condition=condition, action=action)
-    return jsonify(result), 200 if 'message' in result else 500
-
-@api_bp.route('/api/alerts', methods=['GET'])
-@token_required
-def get_alerts_route():
-    """
-    Retrieve all alert rules.
-
-    Returns:
-        JSON response with a list of alert rules.
-    """
-    try:
-        alerts = get_alerts()
-        return jsonify(alerts), 200
-    except Exception as e:
-        return jsonify({'error': 'Unable to fetch alerts'}), 500
-
-@api_bp.route('/api/alerts/<int:alert_id>', methods=['DELETE'])
-@token_required
-def delete_alert_route(alert_id):
-    """
-    Delete an alert rule by its ID.
-
-    Returns:
-        JSON response with success or failure message.
-    """
-    result = delete_alert(alert_id=alert_id)
-    return jsonify(result), 200 if 'message' in result else 500
