@@ -36,3 +36,17 @@ class Alert(Base):
     condition = Column(String(255), nullable=False)
     action = Column(String(255), nullable=False)
     created_at = Column(DateTime, nullable=False)
+
+class AnomalyLog(Base):
+    """
+    Model for logging detected network anomalies.
+    """
+    __tablename__ = 'anomaly_logs'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    source_ip = Column(String(255), nullable=False)
+    destination_ip = Column(String(255), nullable=False)
+    protocol = Column(String(50), nullable=False)
+    length = Column(Integer, nullable=False)
+    anomaly_type = Column(String(255), nullable=False)
+    timestamp = Column(DateTime, nullable=False)
