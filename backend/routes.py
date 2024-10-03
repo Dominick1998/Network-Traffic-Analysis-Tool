@@ -14,6 +14,7 @@ from backend.import_data import import_from_csv
 from backend.logs import get_logs, download_logs
 from backend.threat_detection import detect_ddos
 from backend.performance_monitoring import get_cpu_usage, get_memory_usage, track_response_time
+from backend.email_alerts import send_custom_alert_email
 from backend.user_activity import log_user_activity, get_user_activity_logs
 from backend.alerts import create_alert, get_alerts, delete_alert
 from backend.anomaly_logging import log_anomaly, get_anomaly_logs
@@ -400,3 +401,28 @@ def get_activity_logs():
     except Exception as e:
         print(f"Error fetching user activity logs: {e}")
         return jsonify({'error': 'Unable to fetch activity logs'}), 500
+
+@api_bp.route('/api/alerts', methods=['POST'])
+@token_required
+def create_alert_route():
+    """
+    Create a new alert rule.
+
+    Returns:
+        JSON response with success or failure message.
+    """
+    data = request.json
+    name = data.get('name')
+    condition = data.get('condition')
+    action = data.get('action')
+
+    if not name or not condition or not action:
+        return jsonify({'error': 'All fields are required'}), 400
+
+    result = create_alert(name=name, condition=condition, action=action)
+    
+    # Trigger an email notification when the alert is created
+    if 'message' in result:
+        send_custom_alert_email(alert_name=name, condition=condition, action=action)
+
+    return jsonify(result), 200 if 'message' in result else 500
