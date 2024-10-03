@@ -12,6 +12,7 @@ import PerformanceMonitor from './components/PerformanceMonitor';
 import ActivityLogs from './components/ActivityLogs';
 import AlertManagement from './components/AlertManagement';
 import AnomalyLogs from './components/AnomalyLogs';
+import AlertNotification from './components/AlertNotification';
 import NotificationBanner from './components/NotificationBanner';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
@@ -27,6 +28,7 @@ function App() {
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(isLoggedIn());
+  const [alertMessage, setAlertMessage] = useState(null);  // New state for alert notifications
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -47,6 +49,11 @@ function App() {
               message: `Detected ${anomalies.length} network anomalies. Please investigate.`,
               type: 'error',
             });
+          }
+
+          // Set a custom alert message when a custom alert is triggered
+          if (alertsData.some(alert => alert.condition === 'High Traffic')) {
+            setAlertMessage('Custom Alert Triggered: High Traffic');
           }
         } catch (e) {
           setError('Failed to load traffic data. Please try again.');
@@ -123,6 +130,7 @@ function App() {
             <ActivityLogs />
             <AlertManagement />
             <AnomalyLogs />
+            {alertMessage && <AlertNotification message={alertMessage} type="error" />}
           </>
         ) : (
           <LoginForm onLogin={handleLogin} />
