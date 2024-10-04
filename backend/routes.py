@@ -14,6 +14,7 @@ from backend.import_data import import_from_csv
 from backend.logs import get_logs, download_logs
 from backend.threat_detection import detect_ddos, detect_port_scan, detect_suspicious_ip_ranges
 from backend.performance_monitoring import get_cpu_usage, get_memory_usage, track_response_time
+from backend.firewall_rules import apply_firewall_rule, delete_firewall_rule
 from backend.user_activity import log_user_activity, get_user_activity_logs
 from backend.alerts import create_alert, get_alerts, delete_alert
 from backend.anomaly_logging import log_anomaly, get_anomaly_logs
@@ -418,3 +419,44 @@ def get_activity_logs():
     except Exception as e:
         print(f"Error fetching user activity logs: {e}")
         return jsonify({'error': 'Unable to fetch activity logs'}), 500
+
+@api_bp.route('/api/firewall', methods=['POST'])
+@token_required
+def apply_firewall_rule_route():
+    """
+    Apply a firewall rule based on user input.
+
+    Returns:
+        JSON response with success or failure message.
+    """
+    data = request.json
+    action = data.get('action')
+    ip_address = data.get('ip_address')
+    port = data.get('port')
+    protocol = data.get('protocol')
+
+    if not action or not ip_address:
+        return jsonify({'error': 'Action and IP address are required'}), 400
+
+    result = apply_firewall_rule(action=action, ip_address=ip_address, port=port, protocol=protocol)
+    return jsonify(result), 200 if 'message' in result else 500
+
+@api_bp.route('/api/firewall', methods=['DELETE'])
+@token_required
+def delete_firewall_rule_route():
+    """
+    Delete a firewall rule based on user input.
+
+    Returns:
+        JSON response with success or failure message.
+    """
+    data = request.json
+    ip_address = data.get('ip_address')
+    port = data.get('port')
+    protocol = data.get('protocol')
+
+    if not ip_address:
+        return jsonify({'error': 'IP address is required'}), 400
+
+    result = delete_firewall_rule(ip_address=ip_address, port=port, protocol=protocol)
+    return jsonify(result), 200 if 'message' in result else 500
