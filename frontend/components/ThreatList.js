@@ -23,27 +23,33 @@ const ThreatList = () => {
 
   return (
     <div className="threat-list">
-      <h2>Detected Threats</h2>
+      <h2>Detected Network Threats</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {threats.length > 0 ? (
         <table>
           <thead>
             <tr>
+              <th>Type</th>
               <th>Source IP</th>
-              <th>Request Count</th>
+              <th>Details</th>
             </tr>
           </thead>
           <tbody>
             {threats.map((threat, index) => (
               <tr key={index}>
+                <td>{threat.type}</td>
                 <td>{threat.source_ip}</td>
-                <td>{threat.count}</td>
+                <td>
+                  {threat.type === 'DDoS Attack' ? `Traffic Count: ${threat.traffic_count}` :
+                   threat.type === 'Port Scan' ? `Scanned Ports: ${threat.scanned_ports}` :
+                   threat.type === 'Suspicious IP Range' ? `IP Range: ${threat.ip_range}` : ''}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       ) : (
-        <p>No threats detected at this time.</p>
+        <p>No threats detected.</p>
       )}
     </div>
   );
