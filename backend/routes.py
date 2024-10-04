@@ -12,12 +12,12 @@ from backend.cleanup import delete_old_traffic_data
 from backend.export import export_to_csv, export_to_json
 from backend.import_data import import_from_csv
 from backend.logs import get_logs, download_logs
-from backend.threat_detection import detect_ddos
+from backend.threat_detection import detect_ddos, detect_port_scan, detect_suspicious_ip_ranges
 from backend.performance_monitoring import get_cpu_usage, get_memory_usage, track_response_time
-from backend.email_alerts import send_custom_alert_email
 from backend.user_activity import log_user_activity, get_user_activity_logs
 from backend.alerts import create_alert, get_alerts, delete_alert
 from backend.anomaly_logging import log_anomaly, get_anomaly_logs
+from backend.email_alerts import send_custom_alert_email
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -75,7 +75,8 @@ def get_traffic_data():
                 'destination': sanitize_input(traffic.destination),
                 'protocol': sanitize_input(traffic.protocol),
                 'length': traffic.length,
-                'timestamp': traffic.timestamp.isoformat()
+                'timestamp': traffic.timestamp.isoformat(),
+                'destination_port': traffic.get('destination_port', 0)
             }
             for traffic in traffic_data
         ]
@@ -209,6 +210,11 @@ def create_alert_route():
         return jsonify({'error': 'All fields are required'}), 400
 
     result = create_alert(name=name, condition=condition, action=action)
+    
+    # Trigger an email notification when the alert is created
+    if 'message' in result:
+        send_custom_alert_email(alert_name=name, condition=condition, action=action)
+
     return jsonify(result), 200 if 'message' in result else 500
 
 @api_bp.route('/api/alerts', methods=['GET'])
@@ -335,7 +341,7 @@ def update_retention_policy():
 @token_required
 def detect_threats():
     """
-    Detect potential threats in the network traffic, such as DDoS attacks.
+    Detect potential threats in the network traffic, such as DDoS attacks, port scans, and suspicious IP ranges.
 
     Returns:
         JSON response with a list of detected threats.
@@ -351,15 +357,26 @@ def detect_threats():
                 'destination': sanitize_input(traffic.destination),
                 'protocol': sanitize_input(traffic.protocol),
                 'length': traffic.length,
-                'timestamp': traffic.timestamp.isoformat()
+                'timestamp': traffic.timestamp.isoformat(),
+                'destination_port': traffic.get('destination_port', 0)
             }
             for traffic in traffic_data
         ]
 
-        # Detect DDoS attacks or other threats
-        threats = detect_ddos(traffic_list)
+        # Detect DDoS attacks
+        ddos_threats = detect_ddos(traffic_list)
 
-        return jsonify(threats), 200
+        # Detect port scans
+        port_scan_threats = detect_port_scan(traffic_list)
+
+        # Detect traffic from suspicious IP ranges (e.g., IPs starting with "192.168")
+        suspicious_ranges = ["192.168", "10.0"]
+        suspicious_ip_threats = detect_suspicious_ip_ranges(traffic_list, suspicious_ranges)
+
+        # Combine all detected threats
+        all_threats = ddos_threats + port_scan_threats + suspicious_ip_threats
+
+        return jsonify(all_threats), 200
     except Exception as e:
         print(f"Error detecting threats: {e}")
         return jsonify({'error': 'Unable to detect threats'}), 500
@@ -401,28 +418,3 @@ def get_activity_logs():
     except Exception as e:
         print(f"Error fetching user activity logs: {e}")
         return jsonify({'error': 'Unable to fetch activity logs'}), 500
-
-@api_bp.route('/api/alerts', methods=['POST'])
-@token_required
-def create_alert_route():
-    """
-    Create a new alert rule.
-
-    Returns:
-        JSON response with success or failure message.
-    """
-    data = request.json
-    name = data.get('name')
-    condition = data.get('condition')
-    action = data.get('action')
-
-    if not name or not condition or not action:
-        return jsonify({'error': 'All fields are required'}), 400
-
-    result = create_alert(name=name, condition=condition, action=action)
-    
-    # Trigger an email notification when the alert is created
-    if 'message' in result:
-        send_custom_alert_email(alert_name=name, condition=condition, action=action)
-
-    return jsonify(result), 200 if 'message' in result else 500
