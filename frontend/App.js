@@ -12,6 +12,7 @@ import PerformanceMonitor from './components/PerformanceMonitor';
 import ActivityLogs from './components/ActivityLogs';
 import AlertManagement from './components/AlertManagement';
 import AnomalyLogs from './components/AnomalyLogs';
+import FirewallManagement from './components/FirewallManagement';
 import AlertNotification from './components/AlertNotification';
 import NotificationBanner from './components/NotificationBanner';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -28,7 +29,7 @@ function App() {
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(isLoggedIn());
-  const [alertMessage, setAlertMessage] = useState(null);  // New state for alert notifications
+  const [alertMessage, setAlertMessage] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -51,7 +52,6 @@ function App() {
             });
           }
 
-          // Set a custom alert message when a custom alert is triggered
           if (alertsData.some(alert => alert.condition === 'High Traffic')) {
             setAlertMessage('Custom Alert Triggered: High Traffic');
           }
@@ -130,6 +130,7 @@ function App() {
             <ActivityLogs />
             <AlertManagement />
             <AnomalyLogs />
+            <FirewallManagement />
             {alertMessage && <AlertNotification message={alertMessage} type="error" />}
           </>
         ) : (
