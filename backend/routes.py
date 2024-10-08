@@ -12,6 +12,7 @@ from backend.cleanup import delete_old_traffic_data
 from backend.export import export_to_csv, export_to_json
 from backend.import_data import import_from_csv
 from backend.logs import get_logs, download_logs
+from backend.rate_limiting import rate_limit
 from backend.threat_detection import detect_ddos, detect_port_scan, detect_suspicious_ip_ranges
 from backend.performance_monitoring import get_cpu_usage, get_memory_usage, track_response_time
 from backend.firewall_rules import apply_firewall_rule, delete_firewall_rule
@@ -460,3 +461,37 @@ def delete_firewall_rule_route():
 
     result = delete_firewall_rule(ip_address=ip_address, port=port, protocol=protocol)
     return jsonify(result), 200 if 'message' in result else 500
+
+@api_bp.route('/api/traffic', methods=['GET'])
+@token_required
+@rate_limit(max_requests=5, window_seconds=60)  # Rate limiting applied here
+def get_traffic_data():
+    """
+    Retrieve the network traffic data from the database.
+
+    Returns:
+        JSON response with network traffic data.
+    """
+    session = get_db_session()
+    try:
+        traffic_data = session.query(NetworkTraffic).all()
+
+        # Convert query results to a list of dictionaries
+        traffic_list = [
+            {
+                'source': sanitize_input(traffic.source),
+                'destination': sanitize_input(traffic.destination),
+                'protocol': sanitize_input(traffic.protocol),
+                'length': traffic.length,
+                'timestamp': traffic.timestamp.isoformat(),
+                'destination_port': traffic.get('destination_port', 0)
+            }
+            for traffic in traffic_data
+        ]
+
+        return jsonify(traffic_list), 200
+    except Exception as e:
+        print(f"Error fetching traffic data: {e}")
+        return jsonify({'error': 'Unable to fetch traffic data'}), 500
+    finally:
+        session.close()
