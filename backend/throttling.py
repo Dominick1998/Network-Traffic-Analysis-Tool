@@ -1,35 +1,37 @@
-from time import sleep
-from flask import jsonify, request
+from flask import request, jsonify
 from functools import wraps
+from time import sleep
 
-# Simple in-memory throttling storage
-THROTTLING_STORAGE = {}
+# Dictionary to keep track of user throttling
+throttle_users = {}
 
 def throttle(max_requests, slowdown_seconds):
     """
-    Decorator to throttle requests after a certain number of requests.
+    Throttling decorator to slow down user requests after exceeding the max allowed requests.
 
     Args:
-        max_requests (int): Maximum number of requests allowed before throttling is applied.
-        slowdown_seconds (int): The number of seconds to delay the response after throttling is triggered.
+        max_requests (int): Maximum number of requests before slowdown is applied.
+        slowdown_seconds (int): Number of seconds to wait before processing the request.
 
     Returns:
-        function: The decorated function with throttling applied.
+        function: Decorated route function with throttling applied.
     """
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
-            client_ip = request.remote_addr
+            user_ip = request.remote_addr
 
-            # Initialize throttling info for the client if not present
-            if client_ip not in THROTTLING_STORAGE:
-                THROTTLING_STORAGE[client_ip] = {'count': 1}
-            else:
-                # Increment the request count and apply throttling if necessary
-                THROTTLING_STORAGE[client_ip]['count'] += 1
-                if THROTTLING_STORAGE[client_ip]['count'] > max_requests:
-                    sleep(slowdown_seconds)
-                    THROTTLING_STORAGE[client_ip]['count'] = 0  # Reset after applying the throttle
+            # Initialize request count for new user IP
+            if user_ip not in throttle_users:
+                throttle_users[user_ip] = 0
+
+            # Increment request count
+            throttle_users[user_ip] += 1
+
+            # Apply throttling if request count exceeds max_requests
+            if throttle_users[user_ip] > max_requests:
+                sleep(slowdown_seconds)
+                throttle_users[user_ip] = 0  # Reset count after slowdown
 
             return f(*args, **kwargs)
         return wrapped
