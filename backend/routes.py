@@ -495,3 +495,58 @@ def get_traffic_data():
         return jsonify({'error': 'Unable to fetch traffic data'}), 500
     finally:
         session.close()
+
+@api_bp.route('/api/anomalies', methods=['GET'])
+@token_required
+@rate_limit(max_requests=5, window_seconds=60)  # Rate limiting applied
+@throttle(max_requests=10, slowdown_seconds=5)  # Throttling applied here
+def get_anomalous_traffic():
+    """
+    Retrieve anomalous network traffic based on anomaly detection.
+
+    Returns:
+        JSON response with anomalous network traffic.
+    """
+    session = get_db_session()
+    try:
+        traffic_data = session.query(NetworkTraffic).all()
+
+        # Convert query results to a list of dictionaries
+        traffic_list = [
+            {
+                'source': sanitize_input(traffic.source),
+                'destination': sanitize_input(traffic.destination),
+                'protocol': sanitize_input(traffic.protocol),
+                'length': traffic.length,
+                'timestamp': traffic.timestamp.isoformat()
+            }
+            for traffic in traffic_data
+        ]
+
+        # Detect anomalies
+        anomalies = detect_anomalies(traffic_list)
+
+        # Log anomalies if detected
+        for anomaly in anomalies:
+            log_anomaly(
+                source_ip=anomaly['source'],
+                destination_ip=anomaly['destination'],
+                protocol=anomaly['protocol'],
+                length=anomaly['length'],
+                anomaly_type="Anomalous Traffic"
+            )
+
+        # Send email notification if anomalies are detected
+        if anomalies:
+            send_email_notification(
+                to_email="admin@example.com",
+                subject="Anomalous Network Traffic Detected",
+                message=f"Anomalies detected in network traffic: {len(anomalies)} anomalies found."
+            )
+
+        return jsonify(anomalies), 200
+    except Exception as e:
+        print(f"Error fetching anomalous traffic: {e}")
+        return jsonify({'error': 'Unable to fetch anomalous traffic'}), 500
+    finally:
+        session.close()
