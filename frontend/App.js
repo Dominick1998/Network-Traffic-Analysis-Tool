@@ -13,6 +13,7 @@ import ActivityLogs from './components/ActivityLogs';
 import AlertManagement from './components/AlertManagement';
 import AnomalyLogs from './components/AnomalyLogs';
 import FirewallManagement from './components/FirewallManagement';
+import ErrorHandling from './components/ErrorHandling';
 import AlertNotification from './components/AlertNotification';
 import NotificationBanner from './components/NotificationBanner';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -30,7 +31,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(isLoggedIn());
   const [alertMessage, setAlertMessage] = useState(null);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null);  // Updated state for errors
 
   useEffect(() => {
     if (authenticated) {
@@ -132,6 +133,7 @@ function App() {
             <AnomalyLogs />
             <FirewallManagement />
             {alertMessage && <AlertNotification message={alertMessage} type="error" />}
+            <ErrorHandling error={error} />  {/* Error handling for rate limiting */}
           </>
         ) : (
           <LoginForm onLogin={handleLogin} />
