@@ -50,3 +50,15 @@ class AnomalyLog(Base):
     length = Column(Integer, nullable=False)
     anomaly_type = Column(String(255), nullable=False)
     timestamp = Column(DateTime, nullable=False)
+
+class Notification(Base):
+    """
+    Model for storing user notifications.
+    """
+    __tablename__ = 'notifications'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, nullable=False)
+    message = Column(String(255), nullable=False)
+    notification_type = Column(String(50), nullable=False, default='info')
+    created_at = Column(DateTime, nullable=False)
