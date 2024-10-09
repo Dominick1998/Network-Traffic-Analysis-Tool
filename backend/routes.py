@@ -20,6 +20,7 @@ from backend.user_activity import log_user_activity, get_user_activity_logs
 from backend.alerts import create_alert, get_alerts, delete_alert
 from backend.anomaly_logging import log_anomaly, get_anomaly_logs
 from backend.email_alerts import send_custom_alert_email
+from backend.notification_system import create_notification, get_notifications
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -550,3 +551,39 @@ def get_anomalous_traffic():
         return jsonify({'error': 'Unable to fetch anomalous traffic'}), 500
     finally:
         session.close()
+
+@api_bp.route('/api/notifications', methods=['GET'])
+@token_required
+def get_user_notifications():
+    """
+    Retrieve all notifications for the authenticated user.
+
+    Returns:
+        JSON response with a list of notifications.
+    """
+    user_id = request.user_id  # Assumes user_id is set by the token_required decorator
+    try:
+        notifications = get_notifications(user_id)
+        return jsonify(notifications), 200
+    except Exception as e:
+        return jsonify({'error': 'Unable to fetch notifications'}), 500
+
+@api_bp.route('/api/notifications', methods=['POST'])
+@token_required
+def create_user_notification():
+    """
+    Create a notification for the authenticated user.
+
+    Returns:
+        JSON response indicating success or failure.
+    """
+    user_id = request.user_id  # Assumes user_id is set by the token_required decorator
+    data = request.json
+    message = data.get('message')
+    notification_type = data.get('type', 'info')
+
+    if not message:
+        return jsonify({'error': 'Message is required'}), 400
+
+    result = create_notification(user_id, message, notification_type)
+    return jsonify(result), 200 if 'message' in result else 500
