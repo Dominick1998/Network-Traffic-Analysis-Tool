@@ -1,0 +1,44 @@
+.incident-reporting {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  margin-top: 20px;
+}
+
+.incident-reporting h2, .incident-reporting h3 {
+  font-size: 18px;
+}
+
+.incident-reporting input, .incident-reporting textarea, .incident-reporting select {
+  margin: 5px 0;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  width: 100%;
+}
+
+.incident-reporting button {
+  margin-top: 10px;
+  padding: 10px 15px;
+  border-radius: 4px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+.incident-reporting button:hover {
+  background-color: #0056b3;
+}
+
+.incident-reporting ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.incident-reporting li {
+  background-color: #eee;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 5px;
+}
