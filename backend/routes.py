@@ -21,6 +21,7 @@ from backend.alerts import create_alert, get_alerts, delete_alert
 from backend.anomaly_logging import log_anomaly, get_anomaly_logs
 from backend.email_alerts import send_custom_alert_email
 from backend.notification_system import create_notification, get_notifications
+from backend.incident_reporting import create_incident_report, get_incident_reports
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -587,3 +588,39 @@ def create_user_notification():
 
     result = create_notification(user_id, message, notification_type)
     return jsonify(result), 200 if 'message' in result else 500
+
+@api_bp.route('/api/incidents', methods=['POST'])
+@token_required
+def submit_incident_report():
+    """
+    Create a new incident report.
+
+    Returns:
+        JSON response indicating success or failure.
+    """
+    user_id = request.user_id  # Assumes user_id is set by the token_required decorator
+    data = request.json
+    title = data.get('title')
+    description = data.get('description')
+    severity = data.get('severity', 'low')
+
+    if not title or not description:
+        return jsonify({'error': 'Title and description are required'}), 400
+
+    result = create_incident_report(user_id, title, description, severity)
+    return jsonify(result), 200 if 'message' in result else 500
+
+@api_bp.route('/api/incidents', methods=['GET'])
+@token_required
+def get_all_incident_reports():
+    """
+    Retrieve all incident reports.
+
+    Returns:
+        JSON response with a list of incident reports.
+    """
+    try:
+        reports = get_incident_reports()
+        return jsonify(reports), 200
+    except Exception as e:
+        return jsonify({'error': 'Unable to fetch incident reports'}), 500
