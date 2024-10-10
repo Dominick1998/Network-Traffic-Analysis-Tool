@@ -62,3 +62,16 @@ class Notification(Base):
     message = Column(String(255), nullable=False)
     notification_type = Column(String(50), nullable=False, default='info')
     created_at = Column(DateTime, nullable=False)
+
+class IncidentReport(Base):
+    """
+    Model for storing incident reports.
+    """
+    __tablename__ = 'incident_reports'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, nullable=False)
+    title = Column(String(255), nullable=False)
+    description = Column(String(1000), nullable=False)
+    severity = Column(String(50), nullable=False)
+    created_at = Column(DateTime, nullable=False)
