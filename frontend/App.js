@@ -15,6 +15,7 @@ import AnomalyLogs from './components/AnomalyLogs';
 import FirewallManagement from './components/FirewallManagement';
 import NotificationCenter from './components/NotificationCenter';
 import IncidentReporting from './components/IncidentReporting';
+import SystemHealth from './components/SystemHealth';
 import AlertNotification from './components/AlertNotification';
 import NotificationBanner from './components/NotificationBanner';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -135,6 +136,7 @@ function App() {
             <FirewallManagement />
             <NotificationCenter />
             <IncidentReporting />
+            <SystemHealth />
             {alertMessage && <AlertNotification message={alertMessage} type="error" />}
           </>
         ) : (
