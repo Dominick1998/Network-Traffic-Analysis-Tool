@@ -1,0 +1,37 @@
+.log-rotation-settings {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  margin-top: 20px;
+}
+
+.log-rotation-settings h2 {
+  font-size: 18px;
+}
+
+.log-rotation-settings label {
+  display: block;
+  margin: 10px 0 5px;
+}
+
+.log-rotation-settings input {
+  margin: 5px 0;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  width: 100%;
+}
+
+.log-rotation-settings button {
+  margin-top: 10px;
+  padding: 10px 15px;
+  border-radius: 4px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+.log-rotation-settings button:hover {
+  background-color: #0056b3;
+}
