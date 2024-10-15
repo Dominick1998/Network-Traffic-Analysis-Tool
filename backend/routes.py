@@ -23,6 +23,7 @@ from backend.email_alerts import send_custom_alert_email
 from backend.notification_system import create_notification, get_notifications
 from backend.incident_reporting import create_incident_report, get_incident_reports
 from backend.system_health_monitoring import get_system_health
+from backend.log_rotation import setup_log_rotation
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -641,3 +642,26 @@ def get_system_health_metrics():
     except Exception as e:
         print(f"Error fetching system health metrics: {e}")
         return jsonify({'error': 'Unable to fetch system health metrics'}), 500
+
+@api_bp.route('/api/logs', methods=['GET'])
+@token_required
+def view_logs():
+    """
+    View the server logs.
+
+    Returns:
+        JSON response containing the log file contents.
+    """
+    return get_logs()
+
+@api_bp.route('/api/logs/download', methods=['GET'])
+@token_required
+def download_server_logs():
+    """
+    Download the server logs.
+
+    Returns:
+        Response that triggers the download of the log file.
+    """
+    log_user_activity(user_id=1, activity="User downloaded server logs")
+    return download_logs()
