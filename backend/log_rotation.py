@@ -1,15 +1,24 @@
+import os
 import logging
 from logging.handlers import RotatingFileHandler
 
-def setup_log_rotation(log_file='request_logs.log', max_bytes=5000000, backup_count=5):
-    """
-    Set up log rotation to ensure logs don't grow too large.
+LOG_DIR = 'logs'
+LOG_FILE = os.path.join(LOG_DIR, 'server.log')
 
-    Args:
-        log_file (str): The file to store logs.
-        max_bytes (int): Maximum size of the log file in bytes before rotation.
-        backup_count (int): Number of backup log files to keep.
+# Ensure the log directory exists
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
+
+def setup_log_rotation():
     """
-    handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count)
-    logging.getLogger().setLevel(logging.INFO)
-    logging.getLogger().addHandler(handler)
+    Setup log rotation to limit log file size and maintain log history.
+    Rotates logs after they reach a certain size.
+    """
+    # Set up log rotation (5MB per file, keep 5 backups)
+    handler = RotatingFileHandler(LOG_FILE, maxBytes=5 * 1024 * 1024, backupCount=5)
+    logging.basicConfig(handlers=[handler], level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
+
+    logging.info('Log rotation setup complete.')
+
+# Call setup to initialize log rotation when the app starts
+setup_log_rotation()
