@@ -665,3 +665,26 @@ def download_server_logs():
     """
     log_user_activity(user_id=1, activity="User downloaded server logs")
     return download_logs()
+
+@api_bp.route('/api/log_rotation/settings', methods=['POST'])
+@token_required
+def update_log_rotation_settings():
+    """
+    Update the log rotation settings (max file size, backup count).
+
+    Returns:
+        JSON response indicating success or failure.
+    """
+    data = request.json
+    max_file_size = data.get('max_file_size', 5)  # Default 5 MB
+    backup_count = data.get('backup_count', 5)  # Default 5 backups
+
+    try:
+        handler = logging.getLogger().handlers[0]
+        if isinstance(handler, RotatingFileHandler):
+            handler.maxBytes = max_file_size * 1024 * 1024
+            handler.backupCount = backup_count
+        return jsonify({'message': 'Log rotation settings updated successfully.'}), 200
+    except Exception as e:
+        print(f"Error updating log rotation settings: {e}")
+        return jsonify({'error': 'Failed to update log rotation settings'}), 500
