@@ -18,6 +18,7 @@ import IncidentReporting from './components/IncidentReporting';
 import SystemHealth from './components/SystemHealth';
 import LogRotationSettings from './components/LogRotationSettings';
 import BackupManagement from './components/BackupManagement';
+import AuditLogViewer from './components/AuditLogViewer';
 import AlertNotification from './components/AlertNotification';
 import NotificationBanner from './components/NotificationBanner';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -141,6 +142,7 @@ function App() {
             <SystemHealth />
             <LogRotationSettings />
             <BackupManagement />
+            <AuditLogViewer />  {/* Integrating the AuditLogViewer component */}
             {alertMessage && <AlertNotification message={alertMessage} type="error" />}
           </>
         ) : (
@@ -152,3 +154,4 @@ function App() {
 }
 
 export default App;
+
