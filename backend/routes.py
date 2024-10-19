@@ -26,6 +26,7 @@ from backend.system_health_monitoring import get_system_health
 from backend.log_rotation import setup_log_rotation
 from backend.backup_management import create_backup, restore_backup
 from backend.audit_logging import log_event
+from backend.backup_management import create_backup, restore_backup
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -781,4 +782,36 @@ def restore_database_backup():
     if 'message' in result:
         log_event(user_id=request.user_id, event_type="restore_backup", description=f"Restored backup {backup_filename}")
 
+    return jsonify(result), 200 if 'message' in result else 500
+
+@api_bp.route('/api/backup/create', methods=['POST'])
+@token_required
+def create_database_backup():
+    """
+    Create a new backup of the database.
+
+    Returns:
+        JSON response indicating success or failure.
+    """
+    database_path = 'path/to/your/database.db'  # Replace with actual database path
+    result = create_backup(database_path)
+    return jsonify(result), 200 if 'message' in result else 500
+
+@api_bp.route('/api/backup/restore', methods=['POST'])
+@token_required
+def restore_database_backup():
+    """
+    Restore the database from a backup file.
+
+    Returns:
+        JSON response indicating success or failure.
+    """
+    data = request.json
+    backup_filename = data.get('backup_filename')
+
+    if not backup_filename:
+        return jsonify({'error': 'Backup filename is required'}), 400
+
+    database_path = 'path/to/your/database.db'  # Replace with actual database path
+    result = restore_backup(backup_filename, database_path)
     return jsonify(result), 200 if 'message' in result else 500
