@@ -26,7 +26,7 @@ from backend.system_health_monitoring import get_system_health
 from backend.log_rotation import setup_log_rotation
 from backend.backup_management import create_backup, restore_backup
 from backend.audit_logging import log_event
-from backend.backup_management import create_backup, restore_backup
+from backend.security_monitoring import detect_unauthorized_access, detect_ddos, log_security_event
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -753,46 +753,6 @@ def create_database_backup():
     Returns:
         JSON response indicating success or failure.
     """
-    database_path = 'path/to/your/database.db'
-    result = create_backup(database_path)
-    
-    if 'message' in result:
-        log_event(user_id=request.user_id, event_type="backup", description=result['message'])
-    
-    return jsonify(result), 200 if 'message' in result else 500
-
-@api_bp.route('/api/backup/restore', methods=['POST'])
-@token_required
-def restore_database_backup():
-    """
-    Restore the database from a backup file.
-
-    Returns:
-        JSON response indicating success or failure.
-    """
-    data = request.json
-    backup_filename = data.get('backup_filename')
-
-    if not backup_filename:
-        return jsonify({'error': 'Backup filename is required'}), 400
-
-    database_path = 'path/to/your/database.db'
-    result = restore_backup(backup_filename, database_path)
-
-    if 'message' in result:
-        log_event(user_id=request.user_id, event_type="restore_backup", description=f"Restored backup {backup_filename}")
-
-    return jsonify(result), 200 if 'message' in result else 500
-
-@api_bp.route('/api/backup/create', methods=['POST'])
-@token_required
-def create_database_backup():
-    """
-    Create a new backup of the database.
-
-    Returns:
-        JSON response indicating success or failure.
-    """
     database_path = 'path/to/your/database.db'  # Replace with actual database path
     result = create_backup(database_path)
     return jsonify(result), 200 if 'message' in result else 500
@@ -815,3 +775,47 @@ def restore_database_backup():
     database_path = 'path/to/your/database.db'  # Replace with actual database path
     result = restore_backup(backup_filename, database_path)
     return jsonify(result), 200 if 'message' in result else 500
+
+@api_bp.route('/api/traffic', methods=['GET'])
+@token_required
+def get_traffic_data():
+    """
+    Retrieve the network traffic data from the database.
+
+    Returns:
+        JSON response with network traffic data.
+    """
+    user_ip = request.remote_addr
+    unauthorized_access_check = detect_unauthorized_access(user_ip, '/api/traffic')
+    
+    if 'warning' in unauthorized_access_check:
+        return jsonify(unauthorized_access_check), 403
+
+    session = get_db_session()
+    try:
+        traffic_data = session.query(NetworkTraffic).all()
+
+        # Convert query results to a list of dictionaries
+        traffic_list = [
+            {
+                'source': traffic.source,
+                'destination': traffic.destination,
+                'protocol': traffic.protocol,
+                'length': traffic.length,
+                'timestamp': traffic.timestamp.isoformat(),
+                'destination_port': traffic.destination_port
+            }
+            for traffic in traffic_data
+        ]
+
+        # Detect DDoS attacks
+        ddos_sources = detect_ddos(traffic_list)
+        if ddos_sources:
+            log_security_event('ddos_detected', f"DDoS attack detected from IP(s): {', '.join(ddos_sources)}")
+            return jsonify({'warning': 'DDoS attack detected', 'sources': ddos_sources}), 200
+
+        return jsonify(traffic_list), 200
+    except Exception as e:
+        return jsonify({'error': 'Unable to fetch traffic data'}), 500
+    finally:
+        session.close()
