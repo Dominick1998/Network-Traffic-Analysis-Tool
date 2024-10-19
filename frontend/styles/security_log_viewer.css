@@ -1,0 +1,22 @@
+.security-log-viewer {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  margin-top: 20px;
+}
+
+.security-log-viewer h2 {
+  font-size: 18px;
+}
+
+.security-log-viewer ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.security-log-viewer li {
+  background-color: #eee;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 5px;
+}
