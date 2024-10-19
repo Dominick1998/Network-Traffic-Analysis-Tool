@@ -21,3 +21,7 @@ matplotlib==3.4.3  # For generating charts and visualizations
 pylint==2.10.2  # For linting and enforcing code standards
 psutil==5.9.0  # For system performance monitoring (CPU, memory)
 Flask-Migrate==3.1.0  # For database migrations
+psutil==5.9.0  # For system performance monitoring (CPU, memory)
+Flask-Migrate==3.1.0  # For database migrations
+logging==0.5.1.2  # For logging functionality
+Flask-SocketIO==5.2.0  # For real-time bidirectional event-based communication
