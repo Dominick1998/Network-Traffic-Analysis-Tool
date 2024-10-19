@@ -1,50 +1,79 @@
-import os
-import shutil
 from datetime import datetime
+import logging
 
-BACKUP_DIR = 'backups'
+SECURITY_LOG_FILE = 'logs/security.log'
 
-def create_backup(database_path):
+# Set up the security logger
+security_logger = logging.getLogger('security_logger')
+security_logger.setLevel(logging.INFO)
+
+# Create a file handler for the security log
+file_handler = logging.FileHandler(SECURITY_LOG_FILE)
+formatter = logging.Formatter('%(asctime)s - %(message)s')
+file_handler.setFormatter(formatter)
+
+# Add the handler to the security logger
+security_logger.addHandler(file_handler)
+
+def log_security_event(event_type, description):
     """
-    Create a backup of the current database by copying the database file.
+    Log a security event.
 
     Args:
-        database_path (str): Path to the database file.
+        event_type (str): Type of the security event (e.g., 'unauthorized_access', 'ddos_detected').
+        description (str): Detailed description of the security event.
 
     Returns:
-        dict: Success or failure message.
+        None
     """
-    if not os.path.exists(BACKUP_DIR):
-        os.makedirs(BACKUP_DIR)
+    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    security_message = f"Event: {event_type} | Description: {description} | Timestamp: {timestamp}"
+    security_logger.info(security_message)
 
-    timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-    backup_filename = f"backup_{timestamp}.db"
-    backup_path = os.path.join(BACKUP_DIR, backup_filename)
-
-    try:
-        shutil.copy(database_path, backup_path)
-        return {'message': f"Backup created successfully at {backup_path}"}
-    except Exception as e:
-        return {'error': f"Failed to create backup: {e}"}
-
-def restore_backup(backup_filename, database_path):
+def detect_unauthorized_access(user_ip, endpoint):
     """
-    Restore the database from a backup file.
+    Detect unauthorized access attempts based on suspicious IP addresses or actions.
 
     Args:
-        backup_filename (str): Name of the backup file.
-        database_path (str): Path to the current database file.
+        user_ip (str): IP address of the user making the request.
+        endpoint (str): The API endpoint that was accessed.
 
     Returns:
-        dict: Success or failure message.
+        dict: Result of the detection.
     """
-    backup_path = os.path.join(BACKUP_DIR, backup_filename)
+    # Example: Check if the IP is on a blocklist
+    blocklisted_ips = ["192.168.1.100", "10.0.0.50"]
+    if user_ip in blocklisted_ips:
+        log_security_event('unauthorized_access', f"Blocked IP {user_ip} attempted to access {endpoint}")
+        return {'warning': 'Unauthorized access attempt detected'}
 
-    if not os.path.exists(backup_path):
-        return {'error': 'Backup file does not exist.'}
+    return {'message': 'No unauthorized access detected'}
 
-    try:
-        shutil.copy(backup_path, database_path)
-        return {'message': 'Backup restored successfully.'}
-    except Exception as e:
-        return {'error': f"Failed to restore backup: {e}"}
+def detect_ddos(traffic_data):
+    """
+    Detect DDoS attack patterns based on abnormal traffic behavior.
+
+    Args:
+        traffic_data (list): List of traffic data dictionaries.
+
+    Returns:
+        list: A list of detected DDoS patterns.
+    """
+    # Example: Look for high traffic volumes from a single source
+    source_ip_counts = {}
+    ddos_threshold = 100  # Example threshold
+
+    for traffic in traffic_data:
+        source_ip = traffic.get('source')
+        if source_ip not in source_ip_counts:
+            source_ip_counts[source_ip] = 0
+        source_ip_counts[source_ip] += 1
+
+    ddos_sources = [ip for ip, count in source_ip_counts.items() if count > ddos_threshold]
+
+    if ddos_sources:
+        for ip in ddos_sources:
+            log_security_event('ddos_detected', f"Potential DDoS detected from IP: {ip}")
+        return ddos_sources
+
+    return []
