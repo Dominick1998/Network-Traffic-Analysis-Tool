@@ -12,14 +12,14 @@ import PerformanceMonitor from './components/PerformanceMonitor';
 import ActivityLogs from './components/ActivityLogs';
 import AlertManagement from './components/AlertManagement';
 import AnomalyLogs from './components/AnomalyLogs';
-import FirewallManagement from './components/FirewallManagement';
+import FirewallManagement from './components/FirewallManagement';  // Importing FirewallManagement
 import NotificationCenter from './components/NotificationCenter';
 import IncidentReporting from './components/IncidentReporting';
 import SystemHealth from './components/SystemHealth';
 import LogRotationSettings from './components/LogRotationSettings';
 import BackupManagement from './components/BackupManagement';
 import AuditLogViewer from './components/AuditLogViewer';
-import SecurityLogViewer from './components/SecurityLogViewer';  // Importing SecurityLogViewer component
+import SecurityLogViewer from './components/SecurityLogViewer';
 import AlertNotification from './components/AlertNotification';
 import NotificationBanner from './components/NotificationBanner';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -137,14 +137,14 @@ function App() {
             <ActivityLogs />
             <AlertManagement />
             <AnomalyLogs />
-            <FirewallManagement />
+            <FirewallManagement />  {/* Integrating FirewallManagement component */}
             <NotificationCenter />
             <IncidentReporting />
             <SystemHealth />
             <LogRotationSettings />
             <BackupManagement />
             <AuditLogViewer />
-            <SecurityLogViewer />  {/* Integrating the SecurityLogViewer component */}
+            <SecurityLogViewer />
             {alertMessage && <AlertNotification message={alertMessage} type="error" />}
           </>
         ) : (
