@@ -27,6 +27,7 @@ from backend.log_rotation import setup_log_rotation
 from backend.backup_management import create_backup, restore_backup
 from backend.audit_logging import log_event
 from backend.security_monitoring import detect_unauthorized_access, detect_ddos, log_security_event
+from backend.firewall_management import get_firewall_rules, add_firewall_rule, delete_firewall_rule
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -819,3 +820,54 @@ def get_traffic_data():
         return jsonify({'error': 'Unable to fetch traffic data'}), 500
     finally:
         session.close()
+
+@api_bp.route('/api/firewall/rules', methods=['GET'])
+@token_required
+def list_firewall_rules():
+    """
+    List all firewall rules.
+
+    Returns:
+        JSON response with a list of firewall rules.
+    """
+    try:
+        rules = get_firewall_rules()
+        return jsonify({'rules': rules}), 200
+    except Exception as e:
+        return jsonify({'error': f"Failed to fetch firewall rules: {e}"}), 500
+
+@api_bp.route('/api/firewall/rules', methods=['POST'])
+@token_required
+def create_firewall_rule():
+    """
+    Add a new firewall rule.
+
+    Returns:
+        JSON response indicating success or failure.
+    """
+    data = request.json
+    rule = data.get('rule')
+
+    if not rule:
+        return jsonify({'error': 'Firewall rule is required'}), 400
+
+    result = add_firewall_rule(rule)
+    return jsonify(result), 200 if 'message' in result else 500
+
+@api_bp.route('/api/firewall/rules', methods=['DELETE'])
+@token_required
+def remove_firewall_rule():
+    """
+    Delete an existing firewall rule.
+
+    Returns:
+        JSON response indicating success or failure.
+    """
+    data = request.json
+    rule = data.get('rule')
+
+    if not rule:
+        return jsonify({'error': 'Firewall rule is required'}), 400
+
+    result = delete_firewall_rule(rule)
+    return jsonify(result), 200 if 'message' in result else 500
