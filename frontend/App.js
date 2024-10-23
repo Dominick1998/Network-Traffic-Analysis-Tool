@@ -133,11 +133,11 @@ function App() {
             <ImportData />
             <LogsViewer />
             <ThreatList />
-            <PerformanceMonitor />
+            <PerformanceMonitor />  {/* Integrating PerformanceMonitor component */}
             <ActivityLogs />
             <AlertManagement />
             <AnomalyLogs />
-            <FirewallManagement />  {/* Integrating FirewallManagement component */}
+            <FirewallManagement />
             <NotificationCenter />
             <IncidentReporting />
             <SystemHealth />
