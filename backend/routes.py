@@ -28,6 +28,7 @@ from backend.backup_management import create_backup, restore_backup
 from backend.audit_logging import log_event
 from backend.security_monitoring import detect_unauthorized_access, detect_ddos, log_security_event
 from backend.firewall_management import get_firewall_rules, add_firewall_rule, delete_firewall_rule
+from backend.performance_monitor import get_cpu_usage, get_memory_usage, get_disk_usage, get_network_latency
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -871,3 +872,63 @@ def remove_firewall_rule():
 
     result = delete_firewall_rule(rule)
     return jsonify(result), 200 if 'message' in result else 500
+
+@api_bp.route('/api/performance/cpu', methods=['GET'])
+@token_required
+def get_cpu_metrics():
+    """
+    Retrieve the current CPU usage.
+
+    Returns:
+        JSON response with CPU usage percentage.
+    """
+    try:
+        cpu_data = get_cpu_usage()
+        return jsonify(cpu_data), 200
+    except Exception as e:
+        return jsonify({'error': f"Failed to retrieve CPU metrics: {e}"}), 500
+
+@api_bp.route('/api/performance/memory', methods=['GET'])
+@token_required
+def get_memory_metrics():
+    """
+    Retrieve the current memory usage.
+
+    Returns:
+        JSON response with memory usage data.
+    """
+    try:
+        memory_data = get_memory_usage()
+        return jsonify(memory_data), 200
+    except Exception as e:
+        return jsonify({'error': f"Failed to retrieve memory metrics: {e}"}), 500
+
+@api_bp.route('/api/performance/disk', methods=['GET'])
+@token_required
+def get_disk_metrics():
+    """
+    Retrieve the current disk usage.
+
+    Returns:
+        JSON response with disk usage data.
+    """
+    try:
+        disk_data = get_disk_usage()
+        return jsonify(disk_data), 200
+    except Exception as e:
+        return jsonify({'error': f"Failed to retrieve disk metrics: {e}"}), 500
+
+@api_bp.route('/api/performance/latency', methods=['GET'])
+@token_required
+def get_network_latency_metrics():
+    """
+    Retrieve the current network latency.
+
+    Returns:
+        JSON response with network latency data.
+    """
+    try:
+        latency_data = get_network_latency()
+        return jsonify(latency_data), 200
+    except Exception as e:
+        return jsonify({'error': f"Failed to retrieve network latency: {e}"}), 500
