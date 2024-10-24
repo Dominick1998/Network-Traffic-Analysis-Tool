@@ -29,6 +29,7 @@ from backend.audit_logging import log_event
 from backend.security_monitoring import detect_unauthorized_access, detect_ddos, log_security_event
 from backend.firewall_management import get_firewall_rules, add_firewall_rule, delete_firewall_rule
 from backend.performance_monitor import get_cpu_usage, get_memory_usage, get_disk_usage, get_network_latency
+from backend.notification_center import add_notification, get_notifications, clear_notifications
 
 # Create a Blueprint for API routes
 api_bp = Blueprint('api', __name__)
@@ -932,3 +933,54 @@ def get_network_latency_metrics():
         return jsonify(latency_data), 200
     except Exception as e:
         return jsonify({'error': f"Failed to retrieve network latency: {e}"}), 500
+
+@api_bp.route('/api/notifications', methods=['GET'])
+@token_required
+def list_notifications():
+    """
+    Retrieve all notifications.
+
+    Returns:
+        JSON response with a list of notifications.
+    """
+    try:
+        notifications = get_notifications()
+        return jsonify({'notifications': notifications}), 200
+    except Exception as e:
+        return jsonify({'error': f"Failed to retrieve notifications: {e}"}), 500
+
+@api_bp.route('/api/notifications', methods=['POST'])
+@token_required
+def create_notification():
+    """
+    Add a new notification.
+
+    Returns:
+        JSON response indicating success or failure.
+    """
+    data = request.json
+    notification = {
+        'type': data.get('type', 'info'),
+        'message': data.get('message'),
+    }
+
+    if not notification['message']:
+        return jsonify({'error': 'Notification message is required'}), 400
+
+    result = add_notification(notification)
+    return jsonify(result), 200
+
+@api_bp.route('/api/notifications/clear', methods=['POST'])
+@token_required
+def clear_all_notifications():
+    """
+    Clear all notifications.
+
+    Returns:
+        JSON response indicating success or failure.
+    """
+    try:
+        result = clear_notifications()
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({'error': f"Failed to clear notifications: {e}"}), 500
