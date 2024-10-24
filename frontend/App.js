@@ -12,8 +12,8 @@ import PerformanceMonitor from './components/PerformanceMonitor';
 import ActivityLogs from './components/ActivityLogs';
 import AlertManagement from './components/AlertManagement';
 import AnomalyLogs from './components/AnomalyLogs';
-import FirewallManagement from './components/FirewallManagement';  // Importing FirewallManagement
-import NotificationCenter from './components/NotificationCenter';
+import FirewallManagement from './components/FirewallManagement';
+import NotificationCenter from './components/NotificationCenter';  // Importing NotificationCenter
 import IncidentReporting from './components/IncidentReporting';
 import SystemHealth from './components/SystemHealth';
 import LogRotationSettings from './components/LogRotationSettings';
@@ -133,12 +133,12 @@ function App() {
             <ImportData />
             <LogsViewer />
             <ThreatList />
-            <PerformanceMonitor />  {/* Integrating PerformanceMonitor component */}
+            <PerformanceMonitor />
             <ActivityLogs />
             <AlertManagement />
             <AnomalyLogs />
             <FirewallManagement />
-            <NotificationCenter />
+            <NotificationCenter />  {/* Integrating NotificationCenter component */}
             <IncidentReporting />
             <SystemHealth />
             <LogRotationSettings />
