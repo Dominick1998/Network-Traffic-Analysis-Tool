@@ -12,7 +12,7 @@ const NotificationCenter = () => {
           throw new Error('Error fetching notifications');
         }
         const data = await response.json();
-        setNotifications(data);
+        setNotifications(data.notifications);
       } catch (error) {
         setError('Failed to load notifications.');
       }
@@ -20,6 +20,20 @@ const NotificationCenter = () => {
 
     fetchNotifications();
   }, []);
+
+  const clearNotifications = async () => {
+    try {
+      const response = await fetch('/api/notifications/clear', {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error('Error clearing notifications');
+      }
+      setNotifications([]);
+    } catch (error) {
+      setError('Failed to clear notifications.');
+    }
+  };
 
   return (
     <div className="notification-center">
@@ -29,13 +43,14 @@ const NotificationCenter = () => {
         <ul>
           {notifications.map((notification, index) => (
             <li key={index}>
-              <strong>{notification.type.toUpperCase()}:</strong> {notification.message} ({new Date(notification.timestamp).toLocaleString()})
+              <strong>{notification.type.toUpperCase()}: </strong>{notification.message}
             </li>
           ))}
         </ul>
       ) : (
         <p>No notifications available.</p>
       )}
+      <button onClick={clearNotifications}>Clear Notifications</button>
     </div>
   );
 };
