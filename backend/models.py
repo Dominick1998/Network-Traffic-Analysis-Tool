@@ -75,3 +75,11 @@ class IncidentReport(Base):
     description = Column(String(1000), nullable=False)
     severity = Column(String(50), nullable=False)
     created_at = Column(DateTime, nullable=False)
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)
+    role = Column(Enum("Admin", "User", name="user_roles"), default="User", nullable=False)
