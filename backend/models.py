@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Enum
 from backend.database import Base
 
 class NetworkTraffic(Base):
@@ -77,9 +77,15 @@ class IncidentReport(Base):
     created_at = Column(DateTime, nullable=False)
 
 class User(Base):
+    """
+    Model for storing user credentials and roles.
+    """
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
     username = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
     role = Column(Enum("Admin", "User", name="user_roles"), default="User", nullable=False)
+
+    def __repr__(self):
+        return f"<User(username={self.username}, role={self.role})>"
