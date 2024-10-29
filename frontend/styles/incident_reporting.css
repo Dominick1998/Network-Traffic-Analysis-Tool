@@ -10,11 +10,11 @@
 }
 
 .incident-reporting input, .incident-reporting textarea, .incident-reporting select {
+  width: 100%;
   margin: 5px 0;
   padding: 8px;
   border-radius: 4px;
   border: 1px solid #ddd;
-  width: 100%;
 }
 
 .incident-reporting button {
