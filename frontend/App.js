@@ -13,7 +13,7 @@ import ActivityLogs from './components/ActivityLogs';
 import AlertManagement from './components/AlertManagement';
 import AnomalyLogs from './components/AnomalyLogs';
 import FirewallManagement from './components/FirewallManagement';
-import NotificationCenter from './components/NotificationCenter';  // Importing NotificationCenter
+import NotificationCenter from './components/NotificationCenter';
 import IncidentReporting from './components/IncidentReporting';
 import SystemHealth from './components/SystemHealth';
 import LogRotationSettings from './components/LogRotationSettings';
@@ -26,6 +26,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
 import { fetchTrafficData, fetchAnomalousTraffic, fetchNetworkSummary, fetchAlerts } from './utils/api';
 import { login, isLoggedIn, logout } from './utils/auth';
+import jwt_decode from "jwt-decode";
 import './styles.css';
 
 function App() {
@@ -36,40 +37,46 @@ function App() {
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(isLoggedIn());
+  const [userRole, setUserRole] = useState(null);  // New state for user role
   const [alertMessage, setAlertMessage] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (authenticated) {
-      const loadData = async () => {
-        try {
-          const data = await fetchTrafficData();
-          const anomalies = await fetchAnomalousTraffic();
-          const summary = await fetchNetworkSummary();
-          const alertsData = await fetchAlerts();
-          setTrafficData(data);
-          setAnomalyData(anomalies);
-          setNetworkSummary(summary);
-          setAlerts(alertsData);
+      const token = localStorage.getItem("token");
+      if (token) {
+        const decoded = jwt_decode(token);
+        setUserRole(decoded.role);  // Set user role based on JWT
 
-          if (anomalies.length > 0) {
-            setNotification({
-              message: `Detected ${anomalies.length} network anomalies. Please investigate.`,
-              type: 'error',
-            });
+        const loadData = async () => {
+          try {
+            const data = await fetchTrafficData();
+            const anomalies = await fetchAnomalousTraffic();
+            const summary = await fetchNetworkSummary();
+            const alertsData = await fetchAlerts();
+            setTrafficData(data);
+            setAnomalyData(anomalies);
+            setNetworkSummary(summary);
+            setAlerts(alertsData);
+
+            if (anomalies.length > 0) {
+              setNotification({
+                message: `Detected ${anomalies.length} network anomalies. Please investigate.`,
+                type: 'error',
+              });
+            }
+
+            if (alertsData.some(alert => alert.condition === 'High Traffic')) {
+              setAlertMessage('Custom Alert Triggered: High Traffic');
+            }
+          } catch (e) {
+            setError('Failed to load traffic data. Please try again.');
+          } finally {
+            setLoading(false);
           }
-
-          if (alertsData.some(alert => alert.condition === 'High Traffic')) {
-            setAlertMessage('Custom Alert Triggered: High Traffic');
-          }
-        } catch (e) {
-          setError('Failed to load traffic data. Please try again.');
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      loadData();
+        };
+        loadData();
+      }
     } else {
       setLoading(false);
     }
@@ -78,6 +85,9 @@ function App() {
   const handleLogin = async (username, password) => {
     const success = await login(username, password);
     if (success) {
+      const token = localStorage.getItem("token");
+      const decoded = jwt_decode(token);
+      setUserRole(decoded.role);  // Set user role on login
       setAuthenticated(true);
       setNotification({ message: 'Login successful!', type: 'success' });
     } else {
@@ -89,6 +99,7 @@ function App() {
   const handleLogout = () => {
     logout();
     setAuthenticated(false);
+    setUserRole(null);
     setNotification({ message: 'You have logged out.', type: 'success' });
   };
 
@@ -121,31 +132,25 @@ function App() {
           <>
             <h2>Captured Network Traffic</h2>
             <TrafficTable trafficData={trafficData} />
-            <h2>Network Traffic Visualization</h2>
             <TrafficChart trafficData={trafficData} />
-            <h2>Anomalous Network Traffic</h2>
             <AnomalyTable anomalyData={anomalyData} />
-            <h2>Network Summary</h2>
-            {networkSummary && <NetworkSummary summary={networkSummary} />}
-            <h2>Network Alerts</h2>
+            <NetworkSummary summary={networkSummary} />
+
+            {userRole === "Admin" && (
+              <>
+                <FirewallManagement />
+                <IncidentReporting />
+                <AuditLogViewer />
+                <BackupManagement />
+                <LogRotationSettings />
+                <SecurityLogViewer />
+              </>
+            )}
+
             <AlertsList alerts={alerts} />
-            <ExportData />
-            <ImportData />
-            <LogsViewer />
-            <ThreatList />
+            <NotificationCenter />
             <PerformanceMonitor />
             <ActivityLogs />
-            <AlertManagement />
-            <AnomalyLogs />
-            <FirewallManagement />
-            <NotificationCenter />  {/* Integrating NotificationCenter component */}
-            <IncidentReporting />
-            <SystemHealth />
-            <LogRotationSettings />
-            <BackupManagement />
-            <AuditLogViewer />
-            <SecurityLogViewer />
-            {alertMessage && <AlertNotification message={alertMessage} type="error" />}
           </>
         ) : (
           <LoginForm onLogin={handleLogin} />
