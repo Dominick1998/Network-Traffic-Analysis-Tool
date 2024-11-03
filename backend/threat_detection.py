@@ -1,70 +1,94 @@
 from backend.database import get_db_session
-from backend.models import NetworkTraffic
+from backend.models import ThreatLog
+from datetime import datetime
 from collections import Counter
 
-def detect_ddos(traffic_list):
+def detect_ddos(traffic_data):
     """
-    Detect potential Distributed Denial of Service (DDoS) attacks.
-
+    Detect potential DDoS attacks based on a high frequency of requests from a single source IP.
+    
     Args:
-        traffic_list (list): List of network traffic data.
-
+        traffic_data (list): List of network traffic dictionaries.
+        
     Returns:
-        list: Detected DDoS threats.
+        list: List of sources flagged for DDoS-like behavior.
     """
-    ddos_threshold = 1000  # Example threshold for DDoS detection
-    ip_counter = Counter([traffic['source'] for traffic in traffic_list])
+    source_ips = [traffic['source'] for traffic in traffic_data]
+    counter = Counter(source_ips)
+    ddos_sources = [ip for ip, count in counter.items() if count > 100]  # Threshold for DDoS
+    
+    if ddos_sources:
+        log_threat("DDoS", f"Potential DDoS sources: {', '.join(ddos_sources)}")
+        
+    return ddos_sources
 
-    # Find IPs with traffic exceeding the threshold
-    ddos_ips = [ip for ip, count in ip_counter.items() if count > ddos_threshold]
-
-    threats = []
-    for ip in ddos_ips:
-        threats.append({
-            'type': 'DDoS Attack',
-            'source_ip': ip,
-            'traffic_count': ip_counter[ip]
-        })
-
-    return threats
-
-def detect_port_scan(traffic_list):
+def detect_port_scan(traffic_data):
     """
-    Detect potential port scanning activities.
-
+    Detect potential port scanning activity by identifying multiple destination ports from a single source IP.
+    
     Args:
-        traffic_list (list): List of network traffic data.
-
+        traffic_data (list): List of network traffic dictionaries.
+        
     Returns:
-        list: Detected port scan threats.
+        list: List of source IPs flagged for port scanning behavior.
     """
-    port_threshold = 100  # Example threshold for detecting port scans
-    traffic_by_ip = {}
+    port_scan_sources = []
+    source_ports = {}
 
-    # Aggregate traffic by source IP and destination port
-    for traffic in traffic_list:
+    for traffic in traffic_data:
+        source = traffic['source']
+        destination_port = traffic['destination_port']
+        
+        if source not in source_ports:
+            source_ports[source] = set()
+        source_ports[source].add(destination_port)
+
+        if len(source_ports[source]) > 10:  # Threshold for port scanning
+            port_scan_sources.append(source)
+            log_threat("Port Scan", f"Port scanning detected from IP: {source}")
+    
+    return list(set(port_scan_sources))
+
+def detect_suspicious_ip_ranges(traffic_data, suspicious_ranges):
+    """
+    Identify traffic originating from specified suspicious IP ranges.
+    
+    Args:
+        traffic_data (list): List of network traffic dictionaries.
+        suspicious_ranges (list): List of IP address ranges considered suspicious.
+        
+    Returns:
+        list: List of traffic entries flagged as originating from suspicious IP ranges.
+    """
+    suspicious_ips = []
+
+    for traffic in traffic_data:
         source_ip = traffic['source']
-        destination_port = traffic.get('destination_port', 0)
-        if source_ip not in traffic_by_ip:
-            traffic_by_ip[source_ip] = set()
-        traffic_by_ip[source_ip].add(destination_port)
+        if any(source_ip.startswith(range_prefix) for range_prefix in suspicious_ranges):
+            suspicious_ips.append(source_ip)
+            log_threat("Suspicious IP", f"Traffic from suspicious IP: {source_ip}")
+    
+    return suspicious_ips
 
-    # Detect IPs scanning multiple ports
-    port_scan_ips = [ip for ip, ports in traffic_by_ip.items() if len(ports) > port_threshold]
-
-    threats = []
-    for ip in port_scan_ips:
-        threats.append({
-            'type': 'Port Scan',
-            'source_ip': ip,
-            'scanned_ports': len(traffic_by_ip[ip])
-        })
-
-    return threats
-
-def detect_suspicious_ip_ranges(traffic_list, suspicious_ranges):
+def log_threat(threat_type, description):
     """
-    Detect traffic from suspicious IP ranges.
-
+    Log identified threats in the database for auditing and notification purposes.
+    
     Args:
-        traffic_list (list): List of network traffic d
+        threat_type (str): Type of threat detected (e.g., DDoS, Port Scan).
+        description (str): Detailed description of the threat.
+    """
+    session = get_db_session()
+    try:
+        threat_log = ThreatLog(
+            threat_type=threat_type,
+            description=description,
+            timestamp=datetime.utcnow()
+        )
+        session.add(threat_log)
+        session.commit()
+    except Exception as e:
+        print(f"Failed to log threat: {e}")
+        session.rollback()
+    finally:
+        session.close()
