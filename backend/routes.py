@@ -25,7 +25,7 @@ from backend.incident_reporting import create_incident_report, get_incident_repo
 from backend.system_health_monitoring import get_system_health
 from backend.log_rotation import setup_log_rotation
 from backend.backup_management import create_backup, restore_backup
-from backend.security_monitoring import detect_unauthorized_access, log_security_event
+from backend.security_monitoring import detect_unauthorized_access, detect_ddos, log_security_event
 from backend.firewall_management import get_firewall_rules, add_firewall_rule, delete_firewall_rule
 from backend.performance_monitor import get_cpu_usage, get_memory_usage, get_disk_usage, get_network_latency
 from backend.notification_center import add_notification, clear_notifications
@@ -236,4 +236,40 @@ def get_system_health_metrics():
         print(f"Error fetching system health metrics: {e}")
         return jsonify({'error': 'Unable to fetch system health metrics'}), 500
 
-# Additional routes (if needed)...
+@api_bp.route('/api/logs/rotate', methods=['POST'])
+@token_required
+@role_required("Admin")
+def rotate_logs():
+    """
+    Trigger log rotation.
+    """
+    try:
+        setup_log_rotation()
+        return jsonify({'message': 'Log rotation initiated successfully.'}), 200
+    except Exception as e:
+        return jsonify({'error': f"Failed to rotate logs: {e}"}), 500
+
+@api_bp.route('/api/backup/create', methods=['POST'])
+@token_required
+@role_required("Admin")
+def create_database_backup_route():
+    """
+    Create a database backup.
+    """
+    db_path = "path/to/database.db"  # Specify the actual path to your database
+    result = create_backup(db_path)
+    return jsonify(result), 200 if 'message' in result else 500
+
+@api_bp.route('/api/backup/restore', methods=['POST'])
+@token_required
+@role_required("Admin")
+def restore_database_backup_route():
+    """
+    Restore database from a backup.
+    """
+    data = request.json
+    backup_filename = data.get("backup_filename")
+    db_path = "path/to/database.db"  # Specify the actual path to your database
+    result = restore_backup(backup_filename, db_path)
+    return jsonify(result), 200 if 'message' in result else 500
+
