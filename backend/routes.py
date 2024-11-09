@@ -17,7 +17,7 @@ from backend.threat_detection import detect_ddos, detect_port_scan, detect_suspi
 from backend.performance_monitoring import get_cpu_usage, get_memory_usage, track_response_time
 from backend.firewall_rules import apply_firewall_rule, delete_firewall_rule
 from backend.user_activity import get_user_activity_logs
-from backend.alerts import create_alert, get_alerts, delete_alert
+from backend.alerts import create_alert, get_alerts, delete_alert, evaluate_alerts  # Added evaluate_alerts
 from backend.anomaly_logging import log_anomaly, get_anomaly_logs
 from backend.email_alerts import send_custom_alert_email
 from backend.notification_system import create_notification, get_notifications
@@ -25,7 +25,7 @@ from backend.incident_reporting import create_incident_report, get_incident_repo
 from backend.system_health_monitoring import get_system_health
 from backend.log_rotation import setup_log_rotation
 from backend.backup_management import create_backup, restore_backup
-from backend.security_monitoring import detect_unauthorized_access, detect_ddos, log_security_event
+from backend.security_monitoring import detect_unauthorized_access, log_security_event
 from backend.firewall_management import get_firewall_rules, add_firewall_rule, delete_firewall_rule
 from backend.performance_monitor import get_cpu_usage, get_memory_usage, get_disk_usage, get_network_latency
 from backend.notification_center import add_notification, clear_notifications
@@ -63,7 +63,7 @@ def login():
 @throttle(max_requests=10, slowdown_seconds=5)
 def get_traffic_data():
     """
-    Retrieve the network traffic data from the database.
+    Retrieve the network traffic data from the database and evaluate alerts based on the data.
     """
     session = get_db_session()
     try:
@@ -77,16 +77,23 @@ def get_traffic_data():
             'destination_port': traffic.destination_port
         } for traffic in traffic_data]
 
+        # Evaluate alerts
+        triggered_alerts = evaluate_alerts(traffic_list)
+
         # Threat detection
         ddos_sources = detect_ddos(traffic_list)
         port_scan_sources = detect_port_scan(traffic_list)
         suspicious_ips = detect_suspicious_ip_ranges(traffic_list, ["192.168", "10.0"])
 
-        return jsonify({"traffic_data": traffic_list, "threats": {
-            "ddos_sources": ddos_sources,
-            "port_scan_sources": port_scan_sources,
-            "suspicious_ips": suspicious_ips
-        }}), 200
+        return jsonify({
+            "traffic_data": traffic_list,
+            "threats": {
+                "ddos_sources": ddos_sources,
+                "port_scan_sources": port_scan_sources,
+                "suspicious_ips": suspicious_ips
+            },
+            "triggered_alerts": triggered_alerts  # Added triggered alerts in response
+        }), 200
     except Exception as e:
         print(f"Error fetching traffic data: {e}")
         return jsonify({'error': 'Unable to fetch traffic data'}), 500
@@ -272,4 +279,3 @@ def restore_database_backup_route():
     db_path = "path/to/database.db"  # Specify the actual path to your database
     result = restore_backup(backup_filename, db_path)
     return jsonify(result), 200 if 'message' in result else 500
-
