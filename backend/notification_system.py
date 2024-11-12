@@ -1,16 +1,17 @@
+# backend/notification_system.py
+
 from backend.database import get_db_session
 from backend.models import Notification
 from datetime import datetime
 
-def create_notification(user_id, message, notification_type="info", alert_id=None):
+def create_notification(user_id, message, notification_type="info"):
     """
-    Create a new notification for a user or for an alert.
+    Create a new notification for a user.
 
     Args:
-        user_id (int): ID of the user to notify. If for an alert, set user_id to None.
+        user_id (int): ID of the user to notify.
         message (str): The content of the notification.
         notification_type (str): Type of notification (e.g., 'info', 'warning', 'error').
-        alert_id (int): ID of the alert that triggered the notification (optional).
 
     Returns:
         dict: Success or failure message.
@@ -19,7 +20,6 @@ def create_notification(user_id, message, notification_type="info", alert_id=Non
     try:
         notification = Notification(
             user_id=user_id,
-            alert_id=alert_id,
             message=message,
             notification_type=notification_type,
             created_at=datetime.utcnow()
@@ -33,26 +33,19 @@ def create_notification(user_id, message, notification_type="info", alert_id=Non
     finally:
         session.close()
 
-def get_notifications(user_id=None, alert_id=None):
+def get_notifications(user_id):
     """
-    Retrieve notifications for a specific user or alert.
+    Retrieve notifications for a user.
 
     Args:
-        user_id (int): ID of the user (optional, if not filtering by user).
-        alert_id (int): ID of the alert (optional, if not filtering by alert).
+        user_id (int): ID of the user.
 
     Returns:
-        list: A list of notifications for the user or alert.
+        list: A list of notifications for the user.
     """
     session = get_db_session()
     try:
-        query = session.query(Notification)
-        if user_id is not None:
-            query = query.filter_by(user_id=user_id)
-        if alert_id is not None:
-            query = query.filter_by(alert_id=alert_id)
-
-        notifications = query.all()
+        notifications = session.query(Notification).filter_by(user_id=user_id).all()
         return [
             {
                 'message': notification.message,
@@ -62,33 +55,25 @@ def get_notifications(user_id=None, alert_id=None):
             for notification in notifications
         ]
     except Exception as e:
-        print(f"Error retrieving notifications: {e}")
         return []
     finally:
         session.close()
 
-def clear_notifications(user_id=None, alert_id=None):
+def clear_notifications(user_id):
     """
-    Clear notifications for a specific user or alert.
+    Clear all notifications for a user.
 
     Args:
-        user_id (int): ID of the user (optional).
-        alert_id (int): ID of the alert (optional).
+        user_id (int): ID of the user whose notifications should be cleared.
 
     Returns:
         dict: Success or failure message.
     """
     session = get_db_session()
     try:
-        query = session.query(Notification)
-        if user_id is not None:
-            query = query.filter_by(user_id=user_id)
-        if alert_id is not None:
-            query = query.filter_by(alert_id=alert_id)
-
-        deleted_count = query.delete()
+        session.query(Notification).filter_by(user_id=user_id).delete()
         session.commit()
-        return {'message': f'{deleted_count} notifications cleared.'}
+        return {'message': 'Notifications cleared successfully.'}
     except Exception as e:
         session.rollback()
         return {'error': f"Failed to clear notifications: {e}"}
