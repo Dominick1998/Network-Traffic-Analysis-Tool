@@ -1,5 +1,3 @@
-# backend/notification_system.py
-
 from backend.database import get_db_session
 from backend.models import Notification
 from datetime import datetime
