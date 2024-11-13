@@ -92,7 +92,7 @@ def get_traffic_data():
                 "port_scan_sources": port_scan_sources,
                 "suspicious_ips": suspicious_ips
             },
-            "triggered_alerts": triggered_alerts  # Added triggered alerts in response
+            "triggered_alerts": triggered_alerts
         }), 200
     except Exception as e:
         print(f"Error fetching traffic data: {e}")
