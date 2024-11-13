@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from backend.database import Base
+from datetime import datetime
 
 class NetworkTraffic(Base):
     __tablename__ = 'network_traffic'
@@ -61,3 +62,13 @@ class ThreatLog(Base):
     threat_type = Column(String(255), nullable=False)
     description = Column(String(1000), nullable=False)
     timestamp = Column(DateTime, nullable=False)
+
+class FirewallRule(Base):
+    """
+    Model for storing firewall rules.
+    """
+    __tablename__ = 'firewall_rules'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    rule = Column(String(255), nullable=False, unique=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
