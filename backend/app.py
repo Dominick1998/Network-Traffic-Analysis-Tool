@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify, request
 from backend.database import get_db_session
 from backend.models import NetworkTraffic
 from backend.security import sanitize_input
@@ -8,26 +8,32 @@ from backend.logging_config import setup_logging
 from backend.logging_middleware import log_request_and_response
 from backend.scheduler import start_scheduler
 from backend.log_rotation import setup_log_rotation
+import os
 
-# Initialize logging configuration
-setup_logging()
+# App Factory Function
+def create_app():
+    # Initialize the Flask application
+    app = Flask(__name__)
+    
+    # Initialize logging configuration
+    setup_logging()
 
-# Set up log rotation
-setup_log_rotation()
+    # Set up log rotation
+    setup_log_rotation()
 
-# Start the scheduler for periodic tasks (e.g., cleanup, alerts evaluation)
-start_scheduler()
+    # Start the scheduler for periodic tasks
+    start_scheduler()
 
-# Initialize the Flask application
-app = Flask(__name__)
+    # Apply logging middleware to log requests and responses
+    app = log_request_and_response(app)
 
-# Apply logging middleware to log requests and responses
-app = log_request_and_response(app)
+    # Register the Blueprint for API routes
+    app.register_blueprint(api_bp)
 
-# Register the Blueprint for API routes
-app.register_blueprint(api_bp)
+    # Register error handlers
+    register_error_handlers(app)
 
-return app
+    return app
 
 # Error Handlers
 def register_error_handlers(app):
@@ -39,21 +45,16 @@ def register_error_handlers(app):
     def internal_server_error(error):
         return jsonify({'error': 'An internal error occurred'}), 500
 
-# Entry point
-if __name__ == '__main__':
-    app = create_app()
-    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
-
-# Health check endpoint
-@app.route('/api/health', methods=['GET'])
+# Health check endpoint (added as part of the blueprint)
+@api_bp.route('/api/health', methods=['GET'])
 def health_check():
     """
     Health check endpoint to verify the server is running.
     """
     return jsonify({'status': 'Server is running'}), 200
 
-# Login endpoint
-@app.route('/api/login', methods=['POST'])
+# Login endpoint (added as part of the blueprint)
+@api_bp.route('/api/login', methods=['POST'])
 def login():
     """
     Login endpoint to authenticate the user and return a JWT token.
@@ -69,8 +70,8 @@ def login():
     else:
         return jsonify({'error': 'Invalid credentials'}), 403
 
-# Traffic data retrieval endpoint
-@app.route('/api/traffic', methods=['GET'])
+# Traffic data retrieval endpoint (added as part of the blueprint)
+@api_bp.route('/api/traffic', methods=['GET'])
 @token_required
 def get_traffic_data():
     """
@@ -100,6 +101,7 @@ def get_traffic_data():
     finally:
         session.close()
 
-# Run the application
+# Entry Point
 if __name__ == '__main__':
-    app.run(debug=True)
+    app = create_app()
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
