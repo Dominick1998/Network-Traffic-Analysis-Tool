@@ -27,6 +27,23 @@ app = log_request_and_response(app)
 # Register the Blueprint for API routes
 app.register_blueprint(api_bp)
 
+return app
+
+# Error Handlers
+def register_error_handlers(app):
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return jsonify({'error': 'Resource not found'}), 404
+
+    @app.errorhandler(500)
+    def internal_server_error(error):
+        return jsonify({'error': 'An internal error occurred'}), 500
+
+# Entry point
+if __name__ == '__main__':
+    app = create_app()
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
+
 # Health check endpoint
 @app.route('/api/health', methods=['GET'])
 def health_check():
