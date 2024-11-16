@@ -1,28 +1,41 @@
 import time
-from threading import Thread
+from threading import Thread, Event
 from backend.log_rotation import setup_log_rotation
 from backend.email_notifications import send_email_notification
-from backend.routes import scheduler_pause_event
 from backend.cleanup import delete_old_traffic_data
-from backend.notifications import send_admin_notification
+from backend.alerts import evaluate_alerts
+from backend.system_health_monitoring import log_system_health
+
+# Global pause event for the scheduler
+scheduler_pause_event = Event()
+scheduler_pause_event.set()  # Initially allow tasks to run
 
 def start_scheduler():
     """
     Start the scheduler and set up periodic tasks.
     """
-    # Set up periodic tasks (e.g., send daily summary every 24 hours, rotate logs every hour, cleanup every 7 days)
-    scheduled_task(86400, send_daily_summary)  # Daily summary task
-    scheduled_task(3600, rotate_logs_task)     # Log rotation task
-    scheduled_task(604800, lambda: delete_old_traffic_data(30))  # Cleanup task, runs every 7 days
+    print("Starting scheduler...")
+    scheduled_task(86400, send_daily_summary)  # Daily summary task (24 hours)
+    scheduled_task(3600, rotate_logs_task)     # Log rotation task (1 hour)
+    scheduled_task(604800, cleanup_task)       # Cleanup task (7 days)
+    scheduled_task(900, evaluate_alerts_task)  # Alert evaluation task (15 minutes)
+    scheduled_task(600, health_monitor_task)   # System health monitoring task (10 minutes)
 
 def scheduled_task(interval, task_function):
     """
     Run a given task at a fixed interval in a separate thread, with pause/resume support.
+    Args:
+        interval (int): Time interval between task executions in seconds.
+        task_function (function): The function to execute as a scheduled task.
     """
     def run_task():
         while True:
             if not scheduler_pause_event.is_set():
-                task_function()
+                print(f"Executing task: {task_function.__name__}")
+                try:
+                    task_function()
+                except Exception as e:
+                    print(f"Error executing task {task_function.__name__}: {e}")
             time.sleep(interval)
 
     task_thread = Thread(target=run_task)
@@ -34,52 +47,65 @@ def send_daily_summary():
     Task that sends a daily summary email to administrators.
     """
     try:
-        send_admin_notification(
+        send_email_notification(
+            to_email="admin@example.com",
             subject="Daily Traffic Summary",
             message="Here is your daily network traffic summary..."
         )
+        print("Daily summary email sent successfully.")
     except Exception as e:
-        send_admin_notification(
-            subject="Error in Daily Summary Task",
-            message=f"An error occurred while sending the daily summary: {e}"
-        )
+        print(f"Error in send_daily_summary: {e}")
 
 def rotate_logs_task():
     """
-    Task to rotate logs periodically, with notification on completion.
+    Task to rotate logs periodically.
     """
     try:
         setup_log_rotation()
-        send_admin_notification(
-            subject="Log Rotation Complete",
-            message="Log rotation was completed successfully."
-        )
+        print("Log rotation completed successfully.")
     except Exception as e:
-        send_admin_notification(
-            subject="Error in Log Rotation Task",
-            message=f"An error occurred during log rotation: {e}"
-        )
+        print(f"Error in rotate_logs_task: {e}")
 
 def cleanup_task():
     """
     Task to clean up old traffic data and notify admin on completion.
     """
     try:
-        delete_old_traffic_data(30)
-        send_admin_notification(
-            subject="Traffic Data Cleanup Complete",
-            message="Old traffic data older than 30 days was deleted successfully."
-        )
+        delete_old_traffic_data(30)  # Delete traffic data older than 30 days
+        print("Traffic data cleanup completed successfully.")
     except Exception as e:
-        send_admin_notification(
-            subject="Error in Traffic Data Cleanup Task",
-            message=f"An error occurred while cleaning up old traffic data: {e}"
-        )
-        
-def start_scheduler():
+        print(f"Error in cleanup_task: {e}")
+
+def evaluate_alerts_task():
     """
-    Start the scheduler and set up periodic tasks.
+    Task to evaluate alerts periodically.
     """
-    # Set up periodic tasks (e.g., send daily summary every 24 hours and rotate logs every hour)
-    scheduled_task(86400, send_daily_summary)  # Daily summary task
-    scheduled_task(3600, rotate_logs_task)     # Log rotation task
+    try:
+        evaluate_alerts()
+        print("Alert evaluation completed successfully.")
+    except Exception as e:
+        print(f"Error in evaluate_alerts_task: {e}")
+
+def health_monitor_task():
+    """
+    Task to log system health metrics periodically.
+    """
+    try:
+        log_system_health()
+        print("System health metrics logged successfully.")
+    except Exception as e:
+        print(f"Error in health_monitor_task: {e}")
+
+def pause_scheduler():
+    """
+    Pause the execution of all scheduled tasks.
+    """
+    scheduler_pause_event.clear()
+    print("Scheduler paused.")
+
+def resume_scheduler():
+    """
+    Resume the execution of all scheduled tasks.
+    """
+    scheduler_pause_event.set()
+    print("Scheduler resumed.")
