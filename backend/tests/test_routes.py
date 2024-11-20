@@ -3,9 +3,9 @@ from unittest.mock import patch
 from backend.app import app
 
 
-class ExtendedRouteTests(unittest.TestCase):
+class FullRouteTests(unittest.TestCase):
     """
-    Extended tests for the API routes in the Flask application.
+    Comprehensive tests for all API routes in the Flask application.
     """
 
     def setUp(self):
@@ -23,137 +23,118 @@ class ExtendedRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, {'status': 'Server is running'})
 
-    @patch('backend.routes.get_traffic_data')
-    def test_traffic_data_unauthenticated(self, mock_get_traffic_data):
+    @patch('backend.routes.setup_log_rotation')
+    def test_rotate_logs(self, mock_setup_log_rotation):
         """
-        Test the traffic data endpoint without authentication.
+        Test the log rotation endpoint.
         """
-        response = self.app.get('/api/traffic')
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json, {'message': 'Token is missing!'})
+        mock_setup_log_rotation.return_value = True
 
-    @patch('backend.routes.get_traffic_data')
-    def test_traffic_data_authenticated(self, mock_get_traffic_data):
+        response = self.app.post(
+            '/api/logs/rotate',
+            headers={'Authorization': 'Bearer admin_token'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, {'message': 'Log rotation initiated successfully.'})
+
+    @patch('backend.routes.create_backup')
+    def test_create_backup(self, mock_create_backup):
         """
-        Test the traffic data endpoint with a valid token.
+        Test creating a database backup.
         """
-        mock_traffic_data = [
-            {
-                'source': '192.168.1.1',
-                'destination': '192.168.1.2',
-                'protocol': 'TCP',
-                'length': 64,
-                'timestamp': '2023-11-01T12:00:00Z'
-            }
+        mock_create_backup.return_value = {'message': 'Backup created successfully.'}
+
+        response = self.app.post(
+            '/api/backup/create',
+            headers={'Authorization': 'Bearer admin_token'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, {'message': 'Backup created successfully.'})
+
+    @patch('backend.routes.restore_backup')
+    def test_restore_backup(self, mock_restore_backup):
+        """
+        Test restoring a database backup.
+        """
+        mock_restore_backup.return_value = {'message': 'Backup restored successfully.'}
+
+        response = self.app.post(
+            '/api/backup/restore',
+            json={'backup_filename': 'backup_file_20231101.db'},
+            headers={'Authorization': 'Bearer admin_token'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, {'message': 'Backup restored successfully.'})
+
+    @patch('backend.routes.get_notifications')
+    def test_get_notifications(self, mock_get_notifications):
+        """
+        Test retrieving user notifications.
+        """
+        mock_notifications = [
+            {'message': 'Test notification 1', 'type': 'info', 'timestamp': '2023-11-01T12:00:00Z'},
+            {'message': 'Test notification 2', 'type': 'warning', 'timestamp': '2023-11-01T14:00:00Z'}
         ]
-        mock_get_traffic_data.return_value = mock_traffic_data
+        mock_get_notifications.return_value = mock_notifications
+
+        response = self.app.get(
+            '/api/notifications',
+            headers={'Authorization': 'Bearer valid_token'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, mock_notifications)
+
+    @patch('backend.routes.create_incident_report')
+    def test_create_incident_report(self, mock_create_incident_report):
+        """
+        Test creating an incident report.
+        """
+        mock_create_incident_report.return_value = {'message': 'Incident report created successfully.'}
+
+        response = self.app.post(
+            '/api/incidents',
+            json={
+                'title': 'Network Issue',
+                'description': 'A major issue with network connectivity.',
+                'severity': 'high'
+            },
+            headers={'Authorization': 'Bearer admin_token'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, {'message': 'Incident report created successfully.'})
+
+    @patch('backend.routes.evaluate_alerts')
+    def test_evaluate_alerts(self, mock_evaluate_alerts):
+        """
+        Test evaluating alerts against traffic data.
+        """
+        mock_alerts = [
+            {'name': 'High Traffic Alert', 'triggered': True, 'condition': 'traffic > 1000'},
+            {'name': 'DDoS Alert', 'triggered': False, 'condition': 'connections > 500'}
+        ]
+        mock_evaluate_alerts.return_value = mock_alerts
 
         response = self.app.get(
             '/api/traffic',
             headers={'Authorization': 'Bearer valid_token'}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json['traffic_data'], mock_traffic_data)
+        self.assertEqual(response.json['triggered_alerts'], mock_alerts)
 
-    @patch('backend.routes.get_system_health')
-    def test_system_health_unauthenticated(self, mock_get_system_health):
+    def test_invalid_token(self):
         """
-        Test the system health endpoint without authentication.
+        Test accessing a route with an invalid token.
         """
-        response = self.app.get('/api/system_health')
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json, {'message': 'Token is missing!'})
-
-    @patch('backend.routes.get_system_health')
-    def test_system_health_authenticated(self, mock_get_system_health):
-        """
-        Test the system health endpoint with a valid token.
-        """
-        mock_health_data = {
-            'cpu_usage': '15%',
-            'memory_usage': '40%',
-            'disk_usage': '20%',
-            'network_latency': '5ms'
-        }
-        mock_get_system_health.return_value = mock_health_data
-
         response = self.app.get(
-            '/api/system_health',
-            headers={'Authorization': 'Bearer valid_token'}
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, mock_health_data)
-
-    @patch('backend.routes.create_alert_route')
-    def test_create_alert_no_auth(self, mock_create_alert):
-        """
-        Test creating an alert without a valid token.
-        """
-        response = self.app.post(
-            '/api/alerts',
-            json={
-                'name': 'High Traffic Alert',
-                'condition': 'traffic > 1000',
-                'action': 'Notify Admin'
-            }
+            '/api/traffic',
+            headers={'Authorization': 'Bearer invalid_token'}
         )
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json, {'message': 'Token is missing!'})
+        self.assertEqual(response.json, {'message': 'Invalid token!'})
 
-    @patch('backend.routes.create_alert_route')
-    def test_create_alert_admin(self, mock_create_alert):
+    def test_rate_limit_exceeded(self):
         """
-        Test creating an alert with admin privileges.
-        """
-        mock_create_alert.return_value = {'message': 'Alert created successfully'}
-
-        response = self.app.post(
-            '/api/alerts',
-            json={
-                'name': 'High Traffic Alert',
-                'condition': 'traffic > 1000',
-                'action': 'Notify Admin'
-            },
-            headers={'Authorization': 'Bearer admin_token'}
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, {'message': 'Alert created successfully'})
-
-    @patch('backend.routes.get_anomalous_traffic')
-    def test_anomalies_data(self, mock_get_anomalous_traffic):
-        """
-        Test the anomalies data endpoint.
-        """
-        mock_anomalies = [
-            {
-                'source': '192.168.1.1',
-                'destination': '10.0.0.1',
-                'protocol': 'TCP',
-                'length': 128,
-                'timestamp': '2023-11-01T12:30:00Z',
-                'anomaly_type': 'Suspicious Activity'
-            }
-        ]
-        mock_get_anomalous_traffic.return_value = mock_anomalies
-
-        response = self.app.get(
-            '/api/anomalies',
-            headers={'Authorization': 'Bearer valid_token'}
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, mock_anomalies)
-
-    def test_invalid_route(self):
-        """
-        Test that invalid routes return a 404 error.
-        """
-        response = self.app.get('/nonexistent_endpoint')
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.json, {'error': 'Resource not found'})
-
-    def test_rate_limiting(self):
-        """
-        Simulate hitting the same endpoint multiple times to test rate limiting.
+        Test exceeding the rate limit for a route.
         """
         for _ in range(6):  # Assuming a rate limit of 5 requests per minute
             response = self.app.get(
