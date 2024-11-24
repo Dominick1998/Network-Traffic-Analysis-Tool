@@ -45,7 +45,7 @@ The Network Traffic Analysis and Visualization Tool is a comprehensive web appli
 
 4. **Install the required packages:**
     ```bash
-    pip install -r requirements.txt # Dependencies 
+    pip install -r requirements.txt # Required Dependencies 
     ```
 
 5. **Set up the database** (SQLite by default):
